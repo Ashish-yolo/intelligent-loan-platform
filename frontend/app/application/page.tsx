@@ -22,7 +22,7 @@ import {
   TENURE_OPTIONS,
   LoanPurpose,
   EmploymentType
-} from '../types'
+} from '../lib/types'
 
 const STEPS = [
   { id: 1, name: 'Loan Details', icon: CurrencyRupeeIcon },
