@@ -75,7 +75,7 @@ class PolicyEngine:
             self._calculate_foir,
             self._assess_credit_profile,
             self._determine_risk_scale,
-            self._calculate_final_amount
+            self._calculate_loan_terms
         ]
 
     async def evaluate_application(self, application_data: Dict[str, Any], bureau_data: Dict[str, Any]) -> PolicyResult:
