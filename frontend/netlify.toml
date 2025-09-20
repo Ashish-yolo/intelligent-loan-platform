@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://intelligent-loan-platform-api.onrender.com/api/:splat"
+  to = "https://intelligent-loan-platform.onrender.com/api/:splat"
   status = 200
   force = true
 
