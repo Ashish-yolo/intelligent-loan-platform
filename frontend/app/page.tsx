@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PhoneIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { PhoneIcon, CheckCircleIcon, ShieldCheckIcon, BoltIcon, CurrencyRupeeIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { sendOTP, verifyOTP } from './lib/api'
 
@@ -54,7 +54,7 @@ export default function LandingPage() {
         localStorage.setItem('user', JSON.stringify(response.user))
         toast.success('Welcome! Redirecting to your application...')
         setTimeout(() => {
-          router.push('/application')
+          router.push('/loan-requirements')
         }, 1500)
       } else {
         toast.error('Invalid OTP. Please try again.')
@@ -77,52 +77,52 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
-            <PhoneIcon className="h-6 w-6 text-white" />
+          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+            <PhoneIcon className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-3xl font-extrabold text-white">
             Get Your Loan in Minutes
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-300">
             AI-powered instant loan approval with competitive rates
           </p>
         </div>
 
         {/* Features */}
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-10 h-10 bg-green-600/20 border border-green-500/30 rounded-full flex items-center justify-center">
+              <BoltIcon className="w-5 h-5 text-green-400" />
             </div>
-            <span className="text-xs text-gray-600 mt-1">Instant Decision</span>
+            <span className="text-xs text-gray-300">Instant Decision</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <CheckCircleIcon className="w-5 h-5 text-blue-600" />
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-10 h-10 bg-blue-600/20 border border-blue-500/30 rounded-full flex items-center justify-center">
+              <ShieldCheckIcon className="w-5 h-5 text-blue-400" />
             </div>
-            <span className="text-xs text-gray-600 mt-1">No Hidden Fees</span>
+            <span className="text-xs text-gray-300">No Hidden Fees</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <CheckCircleIcon className="w-5 h-5 text-purple-600" />
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-10 h-10 bg-purple-600/20 border border-purple-500/30 rounded-full flex items-center justify-center">
+              <CheckCircleIcon className="w-5 h-5 text-purple-400" />
             </div>
-            <span className="text-xs text-gray-600 mt-1">Digital Process</span>
+            <span className="text-xs text-gray-300">Digital Process</span>
           </div>
         </div>
 
         {/* Main Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-8 space-y-6 shadow-2xl">
           {step === 'phone' && (
             <>
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
                   Phone Number
                 </label>
-                <div className="mt-1 relative">
+                <div className="relative">
                   <input
                     id="phone"
                     name="phone"
@@ -130,22 +130,22 @@ export default function LandingPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="input-field pl-12"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your phone number"
                     maxLength={10}
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 text-sm">+91</span>
+                    <span className="text-gray-400 text-sm">+91</span>
                   </div>
                 </div>
               </div>
               <button
                 onClick={handleSendOTP}
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
               >
                 {loading ? (
-                  <div className="spinner"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   'Send OTP'
                 )}
@@ -156,7 +156,7 @@ export default function LandingPage() {
           {step === 'otp' && (
             <>
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                   Your Name (Optional)
                 </label>
                 <input
@@ -165,12 +165,12 @@ export default function LandingPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 input-field"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter your full name"
                 />
               </div>
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
                   Enter OTP
                 </label>
                 <input
@@ -180,28 +180,28 @@ export default function LandingPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="mt-1 input-field text-center text-lg tracking-wider"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-center text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="000000"
                   maxLength={6}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-400 text-center">
                   OTP sent to +91 {phone}
                 </p>
               </div>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setStep('phone')}
-                  className="flex-1 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleVerifyOTP}
                   disabled={loading}
-                  className="flex-1 py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
                 >
                   {loading ? (
-                    <div className="spinner mx-auto"></div>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
                   ) : (
                     'Verify & Continue'
                   )}
@@ -212,10 +212,19 @@ export default function LandingPage() {
         </div>
 
         {/* Trust indicators */}
-        <div className="text-center text-xs text-gray-500 space-y-2">
-          <p>🔒 Your data is secure and encrypted</p>
-          <p>⚡ Get approved in under 2 minutes</p>
-          <p>💳 Loans from ₹50,000 to ₹20,00,000</p>
+        <div className="grid grid-cols-1 gap-3 text-center">
+          <div className="flex items-center justify-center space-x-2 text-gray-300">
+            <ShieldCheckIcon className="h-4 w-4 text-green-400" />
+            <span className="text-sm">Your data is secure and encrypted</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2 text-gray-300">
+            <BoltIcon className="h-4 w-4 text-blue-400" />
+            <span className="text-sm">Get approved in under 2 minutes</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2 text-gray-300">
+            <CurrencyRupeeIcon className="h-4 w-4 text-yellow-400" />
+            <span className="text-sm">Loans from ₹50,000 to ₹20,00,000</span>
+          </div>
         </div>
       </div>
     </div>
