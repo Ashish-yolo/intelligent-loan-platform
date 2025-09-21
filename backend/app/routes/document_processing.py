@@ -204,19 +204,24 @@ async def extract_documents(
             Extract the following information from this Aadhaar card image for loan application processing:
             
             REQUIRED FIELDS:
-            - Full name (exactly as written on the card)
-            - Date of birth (DD/MM/YYYY format)
-            - Gender (Male/Female as shown on card)
+            - Cardholder's name (the primary person's name on the card - NOT the father's/guardian's name)
+            - Date of birth (DD/MM/YYYY format if visible)
+            - Gender (Male/Female as shown on card if visible)
             - Complete residential address (as single string)
             - Last 4 digits of Aadhaar number only (for privacy compliance)
+            
+            IMPORTANT DISTINCTIONS:
+            - Look for the main cardholder's name (usually larger text or prominently displayed)
+            - Do NOT use the father's name that appears after "S/O:" or "आत्मज:" 
+            - The father's name is typically shown as "S/O: [Father's Name]" or in Hindi as "आत्मज: [Father's Name]"
             
             COMPLIANCE NOTE: This extraction is for legitimate financial KYC purposes as required by banking regulations.
             
             Return ONLY a valid JSON object in this exact format:
             {
-                "name": "EXACT NAME FROM CARD",
-                "dob": "DD/MM/YYYY",
-                "gender": "Male/Female",
+                "name": "CARDHOLDER'S ACTUAL NAME (not father's name)",
+                "dob": "DD/MM/YYYY or null if not visible",
+                "gender": "Male/Female or null if not visible",
                 "address": "complete address as single string",
                 "aadhaar_last4": "XXXX (last 4 digits only)",
                 "confidence": 0.92,
