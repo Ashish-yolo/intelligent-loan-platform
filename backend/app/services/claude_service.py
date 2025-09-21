@@ -15,26 +15,33 @@ class ClaudeService:
         try:
             # Check if API key is available
             api_key = settings.ANTHROPIC_API_KEY
-            if not api_key or api_key == "your-anthropic-api-key-here":
+            if not api_key or api_key == "your-anthropic-api-key-here" or api_key == "placeholder-anthropic-key":
                 logger.warning("ANTHROPIC_API_KEY not set or using placeholder value")
-                logger.info("Claude service will operate in demo mode")
+                logger.info("Document extraction will use demo mode - configure ANTHROPIC_API_KEY for real extraction")
                 self.client = None
                 return
             
             logger.info(f"Initializing Claude client with API key: {api_key[:10]}...")
             self.client = Anthropic(api_key=api_key)
             
-            # Test the connection
-            test_response = self.client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=10,
-                messages=[{"role": "user", "content": "Hello"}]
-            )
-            logger.info("Claude client initialized and tested successfully")
+            # Test the connection with better error handling
+            try:
+                test_response = self.client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=10,
+                    messages=[{"role": "user", "content": "Hello"}]
+                )
+                logger.info("Claude client initialized and tested successfully - REAL EXTRACTION AVAILABLE")
+                
+            except Exception as test_error:
+                logger.error(f"Claude API authentication failed: {test_error}")
+                logger.info("Document extraction will use demo mode - check ANTHROPIC_API_KEY validity")
+                self.client = None
+                return
             
         except Exception as e:
             logger.error(f"Failed to initialize Claude client: {e}")
-            logger.info("Claude service will operate in demo mode")
+            logger.info("Document extraction will use demo mode - Claude API configuration needed")
             self.client = None
 
     async def analyze_application_risk(self, application_data: Dict[str, Any], bureau_data: Dict[str, Any]) -> Dict[str, Any]:

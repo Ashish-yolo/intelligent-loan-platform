@@ -283,42 +283,66 @@ async def extract_documents(
             
                         logger.info("PROCESSING: Attempting Claude API extraction for PAN...")
             try:
-                # Always use simulated extraction for now to ensure reliability
-                logger.info("PROCESSING: Using simulated extraction for reliable results")
-                # Simulate smart extraction based on file characteristics  
-                file_size_kb = len(pan_content) / 1024
+                # Use real Claude API for actual document extraction
+                logger.info("PROCESSING: Attempting real Claude API extraction for PAN...")
                 
-                # Vary data based on file characteristics for realism
-                if file_size_kb > 500:  # Larger file, different data
+                if not claude_service.client:
+                    logger.error("PROCESSING: Claude client not initialized - cannot extract real data")
+                    # Provide a clear message that real extraction is not available
                     extracted_data["pan"] = {
-                        "name": "PRIYA VERMA",
-                        "pan": "CXYP5678Q", 
-                        "dob": "25/03/1990",
-                        "confidence": 0.96,
+                        "name": "API NOT CONFIGURED",
+                        "pan": "XXXXX0000X", 
+                        "dob": "01/01/1990",
+                        "confidence": 0.0,
                         "document_type": "PAN",
-                        "processing_note": "Simulated extraction - high resolution document",
-                        "file_info": f"File: {pan_file.filename}, Size: {file_size_kb:.1f}KB"
+                        "processing_note": "Real extraction requires Claude API configuration",
+                        "file_info": f"File: {pan_file.filename}, Size: {len(pan_content)} bytes"
                     }
-                elif file_size_kb > 200:  # Medium file
-                    extracted_data["pan"] = {
-                        "name": "AMIT SHARMA",
-                        "pan": "BWXPS1234M", 
-                        "dob": "12/05/1988",
-                        "confidence": 0.92,
-                        "document_type": "PAN",
-                        "processing_note": "Simulated extraction - standard document",
-                        "file_info": f"File: {pan_file.filename}, Size: {file_size_kb:.1f}KB"
-                    }
-                else:  # Smaller file
-                    extracted_data["pan"] = {
-                        "name": "RAJESH KUMAR",
-                        "pan": "ABCDE1234F", 
-                        "dob": "15/08/1985",
-                        "confidence": 0.89,
-                        "document_type": "PAN",
-                        "processing_note": "Simulated extraction - compressed document",
-                        "file_info": f"File: {pan_file.filename}, Size: {file_size_kb:.1f}KB"
-                    }
+                else:
+                    logger.info("PROCESSING: Claude client available, processing real document...")
+                    
+                    # Make actual Claude API call for real extraction
+                    pan_result = await claude_service.analyze_document(
+                        image_data=pan_base64,
+                        prompt=pan_extraction_prompt,
+                        media_type=media_type
+                    )
+                    logger.info(f"Real Claude API response for PAN: {pan_result[:200]}...")
+                    
+                    # Try to parse the JSON response
+                    try:
+                        # Clean the response - remove any markdown formatting
+                        clean_result = pan_result.strip()
+                        if clean_result.startswith('```json'):
+                            clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                        elif clean_result.startswith('```'):
+                            clean_result = clean_result.replace('```', '').strip()
+                        
+                        pan_response = json.loads(clean_result)
+                        # Handle new fraud analysis structure
+                        if "extracted_data" in pan_response and "fraud_analysis" in pan_response:
+                            extracted_data["pan"] = pan_response["extracted_data"]
+                            extracted_data["pan"]["fraud_analysis"] = pan_response["fraud_analysis"]
+                        else:
+                            # Legacy format support
+                            extracted_data["pan"] = pan_response
+                        extracted_data["pan"]["is_real_api"] = True
+                        extracted_data["pan"]["processing_note"] = "Real extraction via Claude API"
+                        logger.info("Successfully parsed real Claude API PAN JSON")
+                        
+                    except json.JSONDecodeError as je:
+                        logger.warning(f"Failed to parse PAN JSON from real API: {je}")
+                        logger.info(f"Raw Claude response: {pan_result}")
+                        # Use fallback data with clear indication  
+                        extracted_data["pan"] = {
+                            "name": "PARSING ERROR",
+                            "pan": "XXXXX0000X", 
+                            "dob": "01/01/1990",
+                            "confidence": 0.0,
+                            "document_type": "PAN",
+                            "processing_note": "Claude API responded but JSON parsing failed",
+                            "raw_response": pan_result[:500]
+                        }
             except Exception as e:
                 logger.error(f"PAN processing error: {e}")
                 # Provide seamless fallback data instead of error
@@ -723,51 +747,72 @@ async def extract_salary_slip(
         """
         
         try:
-            # Always use simulated extraction for reliable results
-            logger.info("PROCESSING: Using simulated salary extraction for reliable results")
-            # Simulate smart extraction based on file characteristics
-            file_size_kb = len(salary_content) / 1024
+            # Use real Claude API for actual salary slip extraction
+            logger.info("PROCESSING: Attempting real Claude API extraction for salary slip...")
             
-            # Vary salary data based on file characteristics for realism
-            if file_size_kb > 800:  # Larger file, senior role
+            if not claude_service.client:
+                logger.error("PROCESSING: Claude client not initialized - cannot extract real salary data")
+                # Provide a clear message that real extraction is not available
                 income_data = {
-                    "employee_name": "ANITA DESAI",
-                    "company_name": "Tech Innovations Pvt Ltd",
-                    "salary_month": "09/2024",
-                    "gross_salary": 125000,
-                    "net_salary": 98500,
-                    "monthly_income": 98500,
-                    "confidence": 0.97,
+                    "employee_name": "API NOT CONFIGURED",
+                    "company_name": "REQUIRES CLAUDE API",
+                    "salary_month": "00/0000",
+                    "gross_salary": 0,
+                    "net_salary": 0,
+                    "monthly_income": 0,
+                    "confidence": 0.0,
                     "document_type": "Salary Slip",
-                    "processing_note": "Simulated extraction - detailed salary slip",
-                    "file_info": f"File: {salary_file.filename}, Size: {file_size_kb:.1f}KB"
+                    "processing_note": "Real extraction requires Claude API configuration",
+                    "file_info": f"File: {salary_file.filename}, Size: {len(salary_content)} bytes"
                 }
-            elif file_size_kb > 400:  # Medium file, mid-level role
-                income_data = {
-                    "employee_name": "PRIYA SHARMA",
-                    "company_name": "Digital Solutions Ltd",
-                    "salary_month": "09/2024",
-                    "gross_salary": 92000,
-                    "net_salary": 78500,
-                    "monthly_income": 78500,
-                    "confidence": 0.94,
-                    "document_type": "Salary Slip",
-                    "processing_note": "Simulated extraction - standard salary slip",
-                    "file_info": f"File: {salary_file.filename}, Size: {file_size_kb:.1f}KB"
-                }
-            else:  # Smaller file, entry level
-                income_data = {
-                    "employee_name": "ROHIT KUMAR",
-                    "company_name": "InfoTech Services",
-                    "salary_month": "09/2024",
-                    "gross_salary": 65000,
-                    "net_salary": 55500,
-                    "monthly_income": 55500,
-                    "confidence": 0.91,
-                    "document_type": "Salary Slip",
-                    "processing_note": "Simulated extraction - basic salary slip",
-                    "file_info": f"File: {salary_file.filename}, Size: {file_size_kb:.1f}KB"
-                }
+            else:
+                logger.info("PROCESSING: Claude client available, processing real salary document...")
+                
+                # Make actual Claude API call for real extraction
+                salary_result = await claude_service.analyze_document(
+                    image_data=salary_base64,
+                    prompt=salary_extraction_prompt,
+                    media_type=media_type
+                )
+                logger.info(f"Real Claude API response for salary: {salary_result[:200]}...")
+                
+                # Try to parse the JSON response
+                try:
+                    # Clean the response - remove any markdown formatting
+                    clean_result = salary_result.strip()
+                    if clean_result.startswith('```json'):
+                        clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                    elif clean_result.startswith('```'):
+                        clean_result = clean_result.replace('```', '').strip()
+                    
+                    salary_response = json.loads(clean_result)
+                    # Handle new fraud analysis structure
+                    if "extracted_data" in salary_response and "fraud_analysis" in salary_response:
+                        income_data = salary_response["extracted_data"]
+                        income_data["fraud_analysis"] = salary_response["fraud_analysis"]
+                    else:
+                        # Legacy format support
+                        income_data = salary_response
+                    income_data["is_real_api"] = True
+                    income_data["processing_note"] = "Real extraction via Claude API"
+                    logger.info("Successfully parsed real Claude API salary JSON")
+                    
+                except json.JSONDecodeError as je:
+                    logger.warning(f"Failed to parse salary JSON from real API: {je}")
+                    logger.info(f"Raw Claude response: {salary_result}")
+                    # Use fallback data with clear indication
+                    income_data = {
+                        "employee_name": "PARSING ERROR",
+                        "company_name": "JSON PARSE FAILED",
+                        "salary_month": "00/0000",
+                        "gross_salary": 0,
+                        "net_salary": 0,
+                        "monthly_income": 0,
+                        "confidence": 0.0,
+                        "document_type": "Salary Slip",
+                        "processing_note": "Claude API responded but JSON parsing failed",
+                        "raw_response": salary_result[:500]
+                    }
         except Exception as e:
             logger.error(f"Salary processing error: {e}")
             # Seamless fallback data
