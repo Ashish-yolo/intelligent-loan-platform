@@ -12,6 +12,8 @@ export default function LandingPage() {
   const [name, setName] = useState('')
   const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone')
   const [loading, setLoading] = useState(false)
+  const [fetchingOtp, setFetchingOtp] = useState(false)
+  const [otpReceived, setOtpReceived] = useState('')
   const router = useRouter()
 
   const handleSendOTP = async () => {
@@ -26,9 +28,19 @@ export default function LandingPage() {
       if (response.success) {
         toast.success('OTP sent successfully!')
         setStep('otp')
-        // For demo purposes, show the OTP
+        
+        // Show fetching OTP message and auto-fill
         if (response.otp) {
-          toast.success(`Demo OTP: ${response.otp}`, { duration: 8000 })
+          setFetchingOtp(true)
+          setOtpReceived('')
+          
+          // Simulate fetching OTP with progressive loading
+          setTimeout(() => {
+            setOtpReceived(response.otp)
+            setOtp(response.otp)
+            setFetchingOtp(false)
+            toast.success('OTP auto-filled successfully!', { duration: 3000 })
+          }, 2500) // 2.5 second delay to show fetching
         }
       } else {
         toast.error('Failed to send OTP')
@@ -155,6 +167,28 @@ export default function LandingPage() {
 
           {step === 'otp' && (
             <>
+              {/* Fetching OTP Message */}
+              {fetchingOtp && (
+                <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-blue-300 font-medium">Fetching OTP...</span>
+                  </div>
+                  <p className="text-blue-200 text-sm mt-1">Please wait while we retrieve your OTP</p>
+                </div>
+              )}
+              
+              {/* OTP Success Message */}
+              {otpReceived && !fetchingOtp && (
+                <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircleIcon className="w-5 h-5 text-green-400" />
+                    <span className="text-green-300 font-medium">OTP Retrieved Successfully!</span>
+                  </div>
+                  <p className="text-green-200 text-sm mt-1">Your OTP has been auto-filled below</p>
+                </div>
+              )}
+              
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                   Your Name (Optional)
@@ -180,9 +214,14 @@ export default function LandingPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 text-center text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className={`w-full px-4 py-3 bg-gray-800 border ${
+                    otpReceived && otp === otpReceived 
+                      ? 'border-green-500 ring-1 ring-green-500' 
+                      : 'border-gray-600'
+                  } rounded-lg text-white placeholder-gray-400 text-center text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
                   placeholder="000000"
                   maxLength={6}
+                  disabled={fetchingOtp}
                 />
                 <p className="mt-2 text-xs text-gray-400 text-center">
                   OTP sent to +91 {phone}
