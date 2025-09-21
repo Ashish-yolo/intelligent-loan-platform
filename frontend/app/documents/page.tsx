@@ -249,7 +249,7 @@ export default function DocumentsPage() {
     }
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent, type: 'pan' | 'aadhaar') => {
+  const handleDrop = useCallback((e: React.DragEvent, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
     e.preventDefault()
     setDragOver(null)
     
@@ -259,7 +259,7 @@ export default function DocumentsPage() {
     }
   }, [handleFileUpload])
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, type: 'pan' | 'aadhaar') => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
     const files = Array.from(e.target.files || [])
     if (files[0]) {
       handleFileUpload(files[0], type)
@@ -385,7 +385,7 @@ export default function DocumentsPage() {
     title, 
     description 
   }: { 
-    type: 'pan' | 'aadhaar'
+    type: 'pan' | 'aadhaar_front' | 'aadhaar_back'
     state: DocumentState
     title: string
     description: string
@@ -524,7 +524,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* Document Upload Areas */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <DocumentUploadZone
             type="pan"
             state={panDoc}
@@ -533,10 +533,17 @@ export default function DocumentsPage() {
           />
           
           <DocumentUploadZone
-            type="aadhaar"
-            state={aadhaarDoc}
-            title="Aadhaar Card"
-            description="Upload a clear photo of your Aadhaar Card"
+            type="aadhaar_front"
+            state={aadhaarFrontDoc}
+            title="Aadhaar Front"
+            description="Upload front side with photo and name"
+          />
+          
+          <DocumentUploadZone
+            type="aadhaar_back"
+            state={aadhaarBackDoc}
+            title="Aadhaar Back"
+            description="Upload back side with address and QR code"
           />
         </div>
 
