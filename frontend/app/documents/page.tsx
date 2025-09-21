@@ -361,7 +361,7 @@ export default function DocumentsPage() {
     }
   }
 
-  const canContinue = panDoc.processed && aadhaarDoc.processed && incomeData
+  const canContinue = panDoc.processed && (aadhaarFrontDoc.processed || aadhaarBackDoc.processed) && incomeData
 
   const handleContinue = () => {
     if (!canContinue) return
@@ -369,7 +369,7 @@ export default function DocumentsPage() {
     // Store all extracted data including income
     localStorage.setItem('extractedData', JSON.stringify({
       pan: panDoc.extractedData,
-      aadhaar: aadhaarDoc.extractedData,
+      aadhaar: aadhaarFrontDoc.processed ? aadhaarFrontDoc.extractedData : aadhaarBackDoc.extractedData,
       income: incomeData
     }))
 
