@@ -286,67 +286,79 @@ async def extract_documents(
             """
             
                         logger.info("PROCESSING: Attempting Claude API extraction for PAN...")
-            try:
-                # Use real Claude API for actual document extraction
-                logger.info("PROCESSING: Attempting real Claude API extraction for PAN...")
-                
-                if not claude_service.client:
-                    logger.error("PROCESSING: Claude client not initialized - cannot extract real data")
-                    # Provide a clear message that real extraction is not available
-                    extracted_data["pan"] = {
-                        "name": "API NOT CONFIGURED",
-                        "pan": "XXXXX0000X", 
-                        "dob": "01/01/1990",
-                        "confidence": 0.0,
-                        "document_type": "PAN",
-                        "processing_note": "Real extraction requires Claude API configuration",
-                        "file_info": f"File: {pan_file.filename}, Size: {len(pan_content)} bytes"
-                    }
-                else:
-                    logger.info("PROCESSING: Claude client available, processing real document...")
-                    
-                    # Make actual Claude API call for real extraction
-                    pan_result = await claude_service.analyze_document(
-                        image_data=pan_base64,
-                        prompt=pan_extraction_prompt,
-                        media_type=media_type
-                    )
-                    logger.info(f"Real Claude API response for PAN: {pan_result[:200]}...")
-                    
-                    # Try to parse the JSON response
-                    try:
-                        # Clean the response - remove any markdown formatting
-                        clean_result = pan_result.strip()
-                        if clean_result.startswith('```json'):
-                            clean_result = clean_result.replace('```json', '').replace('```', '').strip()
-                        elif clean_result.startswith('```'):
-                            clean_result = clean_result.replace('```', '').strip()
                         
-                        pan_response = json.loads(clean_result)
-                        # Handle new fraud analysis structure
-                        if "extracted_data" in pan_response and "fraud_analysis" in pan_response:
-                            extracted_data["pan"] = pan_response["extracted_data"]
-                            extracted_data["pan"]["fraud_analysis"] = pan_response["fraud_analysis"]
-                        else:
-                            # Legacy format support
-                            extracted_data["pan"] = pan_response
-                        extracted_data["pan"]["is_real_api"] = True
-                        extracted_data["pan"]["processing_note"] = "Real extraction via Claude API"
-                        logger.info("Successfully parsed real Claude API PAN JSON")
-                        
-                    except json.JSONDecodeError as je:
-                        logger.warning(f"Failed to parse PAN JSON from real API: {je}")
-                        logger.info(f"Raw Claude response: {pan_result}")
-                        # Use fallback data with clear indication  
-                        extracted_data["pan"] = {
-                            "name": "PARSING ERROR",
-                            "pan": "XXXXX0000X", 
-                            "dob": "01/01/1990",
-                            "confidence": 0.0,
-                            "document_type": "PAN",
-                            "processing_note": "Claude API responded but JSON parsing failed",
-                            "raw_response": pan_result[:500]
-                        }
+                        try:
+                            # Use real Claude API for actual document extraction
+                            logger.info("PROCESSING: Attempting real Claude API extraction for PAN...")
+                            
+                            if not claude_service.client:
+                                logger.error("PROCESSING: Claude client not initialized - cannot extract real data")
+                                # Provide a clear message that real extraction is not available
+                                extracted_data["pan"] = {
+                                    "name": "API NOT CONFIGURED",
+                                    "pan": "XXXXX0000X", 
+                                    "dob": "01/01/1990",
+                                    "confidence": 0.0,
+                                    "document_type": "PAN",
+                                    "processing_note": "Real extraction requires Claude API configuration",
+                                    "file_info": f"File: {pan_file.filename}, Size: {len(pan_content)} bytes"
+                                }
+                            else:
+                                logger.info("PROCESSING: Claude client available, processing real document...")
+                                
+                                # Make actual Claude API call for real extraction
+                                pan_result = await claude_service.analyze_document(
+                                    image_data=pan_base64,
+                                    prompt=pan_extraction_prompt,
+                                    media_type=media_type
+                                )
+                                logger.info(f"Real Claude API response for PAN: {pan_result[:200]}...")
+                                
+                                # Try to parse the JSON response
+                                try:
+                                    # Clean the response - remove any markdown formatting
+                                    clean_result = pan_result.strip()
+                                    if clean_result.startswith('```json'):
+                                        clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                                    elif clean_result.startswith('```'):
+                                        clean_result = clean_result.replace('```', '').strip()
+                                    
+                                    pan_response = json.loads(clean_result)
+                                    # Handle new fraud analysis structure
+                                    if "extracted_data" in pan_response and "fraud_analysis" in pan_response:
+                                        extracted_data["pan"] = pan_response["extracted_data"]
+                                        extracted_data["pan"]["fraud_analysis"] = pan_response["fraud_analysis"]
+                                    else:
+                                        # Legacy format support
+                                        extracted_data["pan"] = pan_response
+                                    extracted_data["pan"]["is_real_api"] = True
+                                    extracted_data["pan"]["processing_note"] = "Real extraction via Claude API"
+                                    logger.info("Successfully parsed real Claude API PAN JSON")
+                                    
+                                except json.JSONDecodeError as je:
+                                    logger.warning(f"Failed to parse PAN JSON from real API: {je}")
+                                    logger.info(f"Raw Claude response: {pan_result}")
+                                    # Use fallback data with clear indication  
+                                    extracted_data["pan"] = {
+                                        "name": "PARSING ERROR",
+                                        "pan": "XXXXX0000X", 
+                                        "dob": "01/01/1990",
+                                        "confidence": 0.0,
+                                        "document_type": "PAN",
+                                        "processing_note": "Claude API responded but JSON parsing failed",
+                                        "raw_response": pan_result[:500]
+                                    }
+                        except Exception as claude_error:
+                            logger.error(f"Claude API call failed: {claude_error}")
+                            extracted_data["pan"] = {
+                                "name": "CLAUDE API ERROR",
+                                "pan": "XXXXX0000X", 
+                                "dob": "01/01/1990",
+                                "confidence": 0.0,
+                                "document_type": "PAN",
+                                "processing_note": f"Claude API error: {str(claude_error)[:100]}",
+                                "error_type": "claude_api_error"
+                            }
             except Exception as e:
                 logger.error(f"PAN processing error: {e}")
                 # Use transparent error messaging instead of dummy data

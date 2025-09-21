@@ -62,7 +62,11 @@ def process_document_file(file_content: bytes, content_type: str) -> Tuple[str, 
                 
             except Exception as e:
                 logger.error(f"PDF conversion failed: {e}")
-                raise Exception(f"PDF conversion failed: {str(e)}. Please upload as image (JPG/PNG) instead.")
+                # More specific error messages
+                if "poppler" in str(e).lower() or "pdftoppm" in str(e).lower():
+                    raise Exception("PDF processing unavailable - dependencies not installed. Please upload as JPG/PNG image instead.")
+                else:
+                    raise Exception(f"PDF conversion failed: {str(e)}. Please upload as image (JPG/PNG) instead.")
             
         # Handle image files
         elif any(img_type in content_type.lower() for img_type in ['image', 'jpeg', 'jpg', 'png', 'webp']):
