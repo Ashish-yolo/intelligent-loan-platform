@@ -2,8 +2,19 @@ import base64
 import io
 import logging
 from typing import Tuple, Optional
-from pdf2image import convert_from_bytes
-from PIL import Image
+try:
+    from pdf2image import convert_from_bytes
+    PDF_CONVERSION_AVAILABLE = True
+except ImportError:
+    PDF_CONVERSION_AVAILABLE = False
+    logger.warning("pdf2image not available - PDF conversion disabled")
+
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    logger.warning("PIL not available - image optimization disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -21,29 +32,37 @@ def process_document_file(file_content: bytes, content_type: str) -> Tuple[str, 
     try:
         # Handle PDF files
         if 'pdf' in content_type.lower():
+            if not PDF_CONVERSION_AVAILABLE:
+                raise Exception("PDF conversion not available - pdf2image library not installed")
+            
             logger.info("Converting PDF to image")
             
-            # Convert PDF to images (take first page)
-            images = convert_from_bytes(file_content, first_page=1, last_page=1, dpi=300)
-            
-            if not images:
-                raise Exception("Could not convert PDF to image")
-            
-            # Convert PIL image to base64
-            img = images[0]
-            
-            # Convert to RGB if necessary
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            # Save to bytes buffer
-            buffer = io.BytesIO()
-            img.save(buffer, format='JPEG', quality=95)
-            buffer.seek(0)
-            
-            # Encode to base64
-            image_base64 = base64.b64encode(buffer.getvalue()).decode()
-            return image_base64, "image/jpeg"
+            try:
+                # Convert PDF to images (take first page)
+                images = convert_from_bytes(file_content, first_page=1, last_page=1, dpi=300)
+                
+                if not images:
+                    raise Exception("Could not convert PDF to image")
+                
+                # Convert PIL image to base64
+                img = images[0]
+                
+                # Convert to RGB if necessary
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                # Save to bytes buffer
+                buffer = io.BytesIO()
+                img.save(buffer, format='JPEG', quality=95)
+                buffer.seek(0)
+                
+                # Encode to base64
+                image_base64 = base64.b64encode(buffer.getvalue()).decode()
+                return image_base64, "image/jpeg"
+                
+            except Exception as e:
+                logger.error(f"PDF conversion failed: {e}")
+                raise Exception(f"PDF conversion failed: {str(e)}. Please upload as image (JPG/PNG) instead.")
             
         # Handle image files
         elif any(img_type in content_type.lower() for img_type in ['image', 'jpeg', 'jpg', 'png', 'webp']):
@@ -82,6 +101,10 @@ def optimize_image_for_api(image_base64: str, max_size_mb: float = 4.0) -> str:
     Returns:
         Optimized base64 image
     """
+    if not PIL_AVAILABLE:
+        logger.warning("PIL not available - returning original image without optimization")
+        return image_base64
+    
     try:
         # Calculate current size in MB
         current_size_mb = len(image_base64) * 3 / 4 / (1024 * 1024)  # base64 to bytes to MB
