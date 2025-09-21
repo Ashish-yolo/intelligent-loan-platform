@@ -13,11 +13,29 @@ class ClaudeService:
     async def initialize(self):
         """Initialize Claude client"""
         try:
-            self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-            logger.info("Claude client initialized successfully")
+            # Check if API key is available
+            api_key = settings.ANTHROPIC_API_KEY
+            if not api_key or api_key == "your-anthropic-api-key-here":
+                logger.warning("ANTHROPIC_API_KEY not set or using placeholder value")
+                logger.info("Claude service will operate in demo mode")
+                self.client = None
+                return
+            
+            logger.info(f"Initializing Claude client with API key: {api_key[:10]}...")
+            self.client = Anthropic(api_key=api_key)
+            
+            # Test the connection
+            test_response = self.client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Hello"}]
+            )
+            logger.info("Claude client initialized and tested successfully")
+            
         except Exception as e:
             logger.error(f"Failed to initialize Claude client: {e}")
-            raise
+            logger.info("Claude service will operate in demo mode")
+            self.client = None
 
     async def analyze_application_risk(self, application_data: Dict[str, Any], bureau_data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze application risk using Claude AI"""

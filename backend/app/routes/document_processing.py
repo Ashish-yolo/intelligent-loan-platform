@@ -29,13 +29,29 @@ async def test_document_api():
 
 @router.get("/test-claude")
 async def test_claude_api():
-    """Test Claude API connection"""
+    """Test Claude API connection with comprehensive debugging"""
+    from app.core.config import settings
+    import os
+    
     try:
+        # Check environment variables
+        env_api_key = os.getenv("ANTHROPIC_API_KEY")
+        settings_api_key = settings.ANTHROPIC_API_KEY
+        
+        debug_info = {
+            "env_api_key_set": bool(env_api_key),
+            "env_api_key_preview": env_api_key[:10] + "..." if env_api_key else None,
+            "settings_api_key_set": bool(settings_api_key),
+            "settings_api_key_preview": settings_api_key[:10] + "..." if settings_api_key else None,
+            "claude_client_initialized": bool(claude_service.client),
+            "environment": settings.ENVIRONMENT
+        }
+        
         if not claude_service.client:
             return {
                 "status": "error",
-                "message": "Claude client not initialized",
-                "anthropic_api_key_set": bool(claude_service.client)
+                "message": "Claude client not initialized - check API key configuration",
+                "debug_info": debug_info
             }
         
         # Test simple text generation
@@ -54,7 +70,8 @@ async def test_claude_api():
             "status": "success",
             "message": "Claude API is working",
             "test_response": response.content[0].text,
-            "model": "claude-3-haiku-20240307"
+            "model": "claude-3-haiku-20240307",
+            "debug_info": debug_info
         }
         
     except Exception as e:

@@ -21,12 +21,27 @@ async def lifespan(app: FastAPI):
     
     # Initialize services
     try:
+        logger.info("Initializing Supabase service...")
         await supabase_service.initialize()
+        logger.info("Supabase service initialized successfully")
+        
+        logger.info("Initializing Claude service...")
         await claude_service.initialize()
+        logger.info("Claude service initialization completed")
+        
+        # Log API key status
+        from app.core.config import settings
+        import os
+        env_key = os.getenv("ANTHROPIC_API_KEY")
+        logger.info(f"Environment ANTHROPIC_API_KEY present: {bool(env_key)}")
+        logger.info(f"Settings ANTHROPIC_API_KEY present: {bool(settings.ANTHROPIC_API_KEY)}")
+        logger.info(f"Claude client initialized: {bool(claude_service.client)}")
+        
         logger.info("All services initialized successfully")
     except Exception as e:
         logger.error(f"Service initialization failed: {e}")
-        raise
+        # Don't raise - let the app start in demo mode
+        logger.info("Continuing startup in demo mode")
     
     yield
     
@@ -57,6 +72,29 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "intelligent-loan-platform"}
+
+# System status endpoint
+@app.get("/status")
+async def system_status():
+    from app.core.config import settings
+    import os
+    
+    env_key = os.getenv("ANTHROPIC_API_KEY")
+    
+    return {
+        "service": "intelligent-loan-platform",
+        "environment": settings.ENVIRONMENT,
+        "services": {
+            "supabase": bool(supabase_service.client),
+            "claude": bool(claude_service.client)
+        },
+        "api_keys": {
+            "anthropic_env_set": bool(env_key),
+            "anthropic_settings_set": bool(settings.ANTHROPIC_API_KEY),
+            "anthropic_env_preview": env_key[:10] + "..." if env_key else None,
+            "anthropic_settings_preview": settings.ANTHROPIC_API_KEY[:10] + "..." if settings.ANTHROPIC_API_KEY else None
+        }
+    }
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])

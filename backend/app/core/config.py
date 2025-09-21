@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     SUPABASE_KEY: str
     
     # Claude AI settings
-    ANTHROPIC_API_KEY: str
+    ANTHROPIC_API_KEY: str = ""
     
     # Environment
     ENVIRONMENT: str = "development"
