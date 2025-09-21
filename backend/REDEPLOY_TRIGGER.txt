@@ -1,3 +1,7 @@
-Redeployment trigger - $(date)
-Force fresh deployment of Render backend
+Redeployment trigger - 2024-09-21 16:20:00
+Force fresh deployment of Render backend with 4 critical fixes:
+1. Simplified landing page calculator (loan amount + employment only)
+2. Streamlined OTP flow (removed name collection)
+3. Fixed PAN and Salary document extraction APIs
+4. Enhanced data verification screen (removed credit score, added back button)
 All services should be restarted and rebuilt
