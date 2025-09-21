@@ -190,11 +190,11 @@ async def extract_documents(
         
         # Process PAN card
         if pan_file:
-            logger.info(f"Processing PAN file: {pan_file.filename}, type: {pan_file.content_type}")
+            logger.info(f"PROCESSING: PAN file received - {pan_file.filename}, type: {pan_file.content_type}, size: {pan_file.size}")
             
             # Validate file type - use fallback instead of throwing error
             if not pan_file.content_type or not any(ct in pan_file.content_type.lower() for ct in ['image', 'pdf']):
-                logger.warning("PAN file type validation failed, using fallback data")
+                logger.warning("PROCESSING: PAN file type validation failed, using fallback data")
                 extracted_data["pan"] = {
                     "name": "RAJESH KUMAR SHARMA",
                     "pan": "ABCDE1234F", 
@@ -204,9 +204,11 @@ async def extract_documents(
                     "processing_note": "Demo mode - file validation bypassed"
                 }
             else:
+                logger.info("PROCESSING: PAN file type validation passed, reading content...")
                 pan_content = await pan_file.read()
+                logger.info(f"PROCESSING: PAN file content read, length: {len(pan_content)}")
                 if len(pan_content) == 0:
-                    logger.warning("PAN file is empty, using fallback data")
+                    logger.warning("PROCESSING: PAN file is empty, using fallback data")
                     extracted_data["pan"] = {
                         "name": "RAJESH KUMAR SHARMA",
                         "pan": "ABCDE1234F", 
@@ -217,12 +219,13 @@ async def extract_documents(
                     }
                 else:
                     # Process file (convert PDF to image if needed)
+                    logger.info("PROCESSING: Starting PAN file processing (PDF to image conversion if needed)...")
                     try:
                         pan_base64, media_type = process_document_file(pan_content, pan_file.content_type)
                         pan_base64 = optimize_image_for_api(pan_base64)
-                        logger.info(f"PAN file processed successfully, media_type: {media_type}")
+                        logger.info(f"PROCESSING: PAN file processed successfully, media_type: {media_type}, base64_length: {len(pan_base64)}")
                     except Exception as e:
-                        logger.error(f"Failed to process PAN file: {e}, using fallback data")
+                        logger.error(f"PROCESSING: Failed to process PAN file: {e}, using fallback data")
                         extracted_data["pan"] = {
                             "name": "RAJESH KUMAR SHARMA",
                             "pan": "ABCDE1234F", 
@@ -278,11 +281,14 @@ async def extract_documents(
             }
             """
             
+                        logger.info("PROCESSING: Attempting Claude API extraction for PAN...")
             try:
                 # Check if Claude client is initialized
                 if not claude_service.client:
-                    logger.error("Claude client not initialized for PAN processing")
+                    logger.error("PROCESSING: Claude client not initialized for PAN processing")
                     raise Exception("Claude client not initialized")
+                
+                logger.info("PROCESSING: Claude client is available, making API call...")
                 
                 logger.info("Making real Claude API call for PAN extraction")
                 pan_result = await claude_service.analyze_document(
@@ -612,11 +618,11 @@ async def extract_salary_slip(
 ):
     """Extract income data from salary slip using Anthropic Claude"""
     try:
-        logger.info(f"Processing salary slip: {salary_file.filename}")
+        logger.info(f"PROCESSING: Salary slip received - {salary_file.filename}, type: {salary_file.content_type}, size: {salary_file.size}")
         
         # Validate file - use fallback instead of throwing error
         if not salary_file.content_type or not any(ct in salary_file.content_type.lower() for ct in ['image', 'pdf']):
-            logger.warning("Salary slip file type validation failed, using fallback data")
+            logger.warning("PROCESSING: Salary slip file type validation failed, using fallback data")
             return {
                 "success": True,
                 "income_data": {
