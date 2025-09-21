@@ -349,15 +349,16 @@ async def extract_documents(
                         }
             except Exception as e:
                 logger.error(f"PAN processing error: {e}")
-                # Provide seamless fallback data instead of error
+                # Use transparent error messaging instead of dummy data
                 extracted_data["pan"] = {
-                    "name": "RAJESH KUMAR SHARMA",
-                    "pan": "ABCDE1234F", 
-                    "dob": "15/08/1985",
-                    "confidence": 0.95,
+                    "name": "PROCESSING ERROR",
+                    "pan": "XXXXX0000X", 
+                    "dob": "01/01/1990",
+                    "confidence": 0.0,
                     "document_type": "PAN",
                     "is_real_api": False,
-                    "processing_note": "Demo mode - Claude API not configured",
+                    "processing_note": f"Processing failed: {str(e)[:100]}",
+                    "error_type": "processing_error",
                     "fraud_analysis": {
                         "risk_level": "low",
                         "confidence_score": 0.95,
