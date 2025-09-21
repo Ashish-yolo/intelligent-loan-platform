@@ -129,14 +129,14 @@ export default function DocumentsPage() {
 
       console.log(`API Response status: ${response.status}`)
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`API Error: ${response.status} - ${errorText}`)
-        throw new Error(`Document processing failed: ${response.status}`)
-      }
-
       const result = await response.json()
       console.log('API Result:', result)
+      
+      // Check if the API returned an error structure
+      if (!response.ok) {
+        console.error(`API Error: ${response.status}`, result)
+        throw new Error(`Document processing failed: ${response.status}`)
+      }
       
       if (result.success) {
         // Store bureau score and income collection method
@@ -323,14 +323,14 @@ export default function DocumentsPage() {
 
       console.log(`Income API Response status: ${response.status}`)
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`Income API Error: ${response.status} - ${errorText}`)
-        throw new Error(`Income document processing failed: ${response.status}`)
-      }
-
       const result = await response.json()
       console.log('Income API Result:', result)
+      
+      // Check if the API returned an error structure  
+      if (!response.ok) {
+        console.error(`Income API Error: ${response.status}`, result)
+        throw new Error(`Income document processing failed: ${response.status}`)
+      }
       
       if (result.success && result.income_data) {
         const income: IncomeData = {
