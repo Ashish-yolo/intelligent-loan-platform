@@ -8,6 +8,7 @@ from datetime import datetime
 
 from app.services.claude_service import claude_service
 from app.services.supabase_service import supabase_service
+from app.utils.document_utils import process_document_file, optimize_image_for_api
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ async def extract_documents(
         
         # Process PAN card
         if pan_file:
-            logger.info(f"Processing PAN file: {pan_file.filename}")
+            logger.info(f"Processing PAN file: {pan_file.filename}, type: {pan_file.content_type}")
             
             # Validate file type
             if not pan_file.content_type or not any(ct in pan_file.content_type.lower() for ct in ['image', 'pdf']):
@@ -89,22 +90,33 @@ async def extract_documents(
             pan_content = await pan_file.read()
             if len(pan_content) == 0:
                 raise HTTPException(status_code=400, detail="PAN file is empty")
-                
-            pan_base64 = base64.b64encode(pan_content).decode()
+            
+            # Process file (convert PDF to image if needed)
+            try:
+                pan_base64, media_type = process_document_file(pan_content, pan_file.content_type)
+                pan_base64 = optimize_image_for_api(pan_base64)
+                logger.info(f"PAN file processed successfully, media_type: {media_type}")
+            except Exception as e:
+                logger.error(f"Failed to process PAN file: {e}")
+                raise HTTPException(status_code=400, detail=f"Failed to process PAN file: {str(e)}")
             
             pan_extraction_prompt = """
-            Extract the following information from this PAN card image:
-            - Full name (exactly as written)
-            - PAN number 
-            - Date of birth (if visible)
-            - Father's name (if visible)
+            You are a document processing AI for a legitimate financial institution. Extract the following information from this PAN card image for loan application processing:
+            
+            REQUIRED FIELDS:
+            - Full name (exactly as written on the card)
+            - PAN number (10-character alphanumeric)
+            - Date of birth (if visible on the card)
+            - Father's name (if visible on the card)
+            
+            IMPORTANT: This is for legitimate loan processing purposes. Please extract the information accurately.
             
             Return ONLY a valid JSON object in this exact format:
             {
-                "name": "exact name from document",
-                "pan": "PAN number",
-                "dob": "DD/MM/YYYY or null",
-                "father_name": "father's name or null",
+                "name": "EXACT NAME FROM CARD",
+                "pan": "PAN123456A",
+                "dob": "DD/MM/YYYY or null if not visible",
+                "father_name": "FATHER NAME or null if not visible",
                 "confidence": 0.95,
                 "document_type": "PAN"
             }
@@ -119,7 +131,8 @@ async def extract_documents(
                 logger.info("Making real Claude API call for PAN extraction")
                 pan_result = await claude_service.analyze_document(
                     image_data=pan_base64,
-                    prompt=pan_extraction_prompt
+                    prompt=pan_extraction_prompt,
+                    media_type=media_type
                 )
                 logger.info(f"Real Claude API response for PAN: {pan_result[:200]}...")
                 
@@ -166,7 +179,7 @@ async def extract_documents(
         
         # Process Aadhaar card
         if aadhaar_file:
-            logger.info(f"Processing Aadhaar file: {aadhaar_file.filename}")
+            logger.info(f"Processing Aadhaar file: {aadhaar_file.filename}, type: {aadhaar_file.content_type}")
             
             # Validate file type
             if not aadhaar_file.content_type or not any(ct in aadhaar_file.content_type.lower() for ct in ['image', 'pdf']):
@@ -175,24 +188,37 @@ async def extract_documents(
             aadhaar_content = await aadhaar_file.read()
             if len(aadhaar_content) == 0:
                 raise HTTPException(status_code=400, detail="Aadhaar file is empty")
-                
-            aadhaar_base64 = base64.b64encode(aadhaar_content).decode()
+            
+            # Process file (convert PDF to image if needed)
+            try:
+                aadhaar_base64, media_type = process_document_file(aadhaar_content, aadhaar_file.content_type)
+                aadhaar_base64 = optimize_image_for_api(aadhaar_base64)
+                logger.info(f"Aadhaar file processed successfully, media_type: {media_type}")
+            except Exception as e:
+                logger.error(f"Failed to process Aadhaar file: {e}")
+                raise HTTPException(status_code=400, detail=f"Failed to process Aadhaar file: {str(e)}")
             
             aadhaar_extraction_prompt = """
-            Extract the following information from this Aadhaar card image:
-            - Full name (exactly as written)
-            - Date of birth
-            - Gender
-            - Complete address
-            - Aadhaar number (last 4 digits only for privacy)
+            You are a document processing AI for a legitimate financial institution conducting KYC (Know Your Customer) verification for loan applications. This is a legally compliant process for identity verification.
+            
+            Extract the following information from this Aadhaar card image for loan application processing:
+            
+            REQUIRED FIELDS:
+            - Full name (exactly as written on the card)
+            - Date of birth (DD/MM/YYYY format)
+            - Gender (Male/Female as shown on card)
+            - Complete residential address (as single string)
+            - Last 4 digits of Aadhaar number only (for privacy compliance)
+            
+            COMPLIANCE NOTE: This extraction is for legitimate financial KYC purposes as required by banking regulations.
             
             Return ONLY a valid JSON object in this exact format:
             {
-                "name": "exact name from document",
+                "name": "EXACT NAME FROM CARD",
                 "dob": "DD/MM/YYYY",
                 "gender": "Male/Female",
                 "address": "complete address as single string",
-                "aadhaar_last4": "last 4 digits only",
+                "aadhaar_last4": "XXXX (last 4 digits only)",
                 "confidence": 0.92,
                 "document_type": "Aadhaar"
             }
@@ -207,7 +233,8 @@ async def extract_documents(
                 logger.info("Making real Claude API call for Aadhaar extraction")
                 aadhaar_result = await claude_service.analyze_document(
                     image_data=aadhaar_base64,
-                    prompt=aadhaar_extraction_prompt
+                    prompt=aadhaar_extraction_prompt,
+                    media_type=media_type
                 )
                 logger.info(f"Real Claude API response for Aadhaar: {aadhaar_result[:200]}...")
                 
@@ -291,24 +318,35 @@ async def extract_salary_slip(
         salary_content = await salary_file.read()
         if len(salary_content) == 0:
             raise HTTPException(status_code=400, detail="Salary slip file is empty")
-            
-        salary_base64 = base64.b64encode(salary_content).decode()
+        
+        # Process file (convert PDF to image if needed)
+        try:
+            salary_base64, media_type = process_document_file(salary_content, salary_file.content_type)
+            salary_base64 = optimize_image_for_api(salary_base64)
+            logger.info(f"Salary slip processed successfully, media_type: {media_type}")
+        except Exception as e:
+            logger.error(f"Failed to process salary slip: {e}")
+            raise HTTPException(status_code=400, detail=f"Failed to process salary slip: {str(e)}")
         
         salary_extraction_prompt = """
+        You are a document processing AI for a legitimate financial institution processing loan applications. Extract salary information from this payslip for income verification purposes.
+        
         Extract the following salary information from this salary slip/payslip:
-        - Employee name
-        - Company name
-        - Month/Year of salary
-        - Gross salary amount
-        - Net salary amount (take home)
+        - Employee name (as shown on slip)
+        - Company/employer name
+        - Salary month/year
+        - Gross salary amount (before deductions)
+        - Net salary amount (take home pay)
         - Basic salary component
-        - Any allowances
-        - Deductions (PF, TDS, etc.)
+        - Allowances (HRA, DA, etc.)
+        - Deductions (PF, TDS, ESI, etc.)
+        
+        IMPORTANT: This is for legitimate loan processing and income verification.
         
         Return ONLY a valid JSON object in this exact format:
         {
-            "employee_name": "name from slip",
-            "company_name": "company name",
+            "employee_name": "NAME FROM SLIP",
+            "company_name": "COMPANY NAME",
             "salary_month": "MM/YYYY",
             "gross_salary": 85000,
             "net_salary": 72000,
@@ -324,7 +362,8 @@ async def extract_salary_slip(
         try:
             salary_result = await claude_service.analyze_document(
                 image_data=salary_base64,
-                prompt=salary_extraction_prompt
+                prompt=salary_extraction_prompt,
+                media_type=media_type
             )
             logger.info(f"Salary extraction result: {salary_result}")
             
