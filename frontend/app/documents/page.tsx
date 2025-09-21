@@ -117,7 +117,13 @@ export default function DocumentsPage() {
     try {
       // Get API URL with fallback
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      console.log(`Calling API: ${apiUrl}/api/documents/extract-documents`)
+      console.log(`FRONTEND DEBUG: Calling API: ${apiUrl}/api/documents/extract-documents`)
+      console.log(`FRONTEND DEBUG: Document type: ${type}`)
+      console.log(`FRONTEND DEBUG: File info:`, { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      })
       
       const response = await fetch(`${apiUrl}/api/documents/extract-documents`, {
         method: 'POST',
@@ -311,7 +317,13 @@ export default function DocumentsPage() {
         ? '/api/documents/extract-salary-slip'
         : '/api/documents/extract-bank-statement'
       
-      console.log(`Calling income API: ${apiUrl}${endpoint}`)
+      console.log(`FRONTEND DEBUG: Calling income API: ${apiUrl}${endpoint}`)
+      console.log(`FRONTEND DEBUG: Income document type: ${type}`)
+      console.log(`FRONTEND DEBUG: Income file info:`, { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      })
       
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',

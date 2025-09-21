@@ -24,8 +24,95 @@ async def test_document_api():
             "/extract-documents",
             "/extract-salary-slip", 
             "/extract-bank-statement"
-        ]
+        ],
+        "version": "v2.0 - Fixed HTTP errors",
+        "timestamp": "2024-09-21"
     }
+
+@router.post("/test-pan-upload")
+async def test_pan_upload(pan_file: UploadFile = File(...)):
+    """Test endpoint specifically for PAN upload debugging"""
+    try:
+        logger.info(f"TEST: PAN file received: {pan_file.filename}, type: {pan_file.content_type}, size: {pan_file.size}")
+        
+        # Read file content
+        content = await pan_file.read()
+        logger.info(f"TEST: File content length: {len(content)}")
+        
+        # Test our validation logic
+        if not pan_file.content_type or not any(ct in pan_file.content_type.lower() for ct in ['image', 'pdf']):
+            logger.warning("TEST: File type validation would fail")
+            return {
+                "status": "test_complete",
+                "validation": "failed",
+                "reason": "Invalid file type",
+                "content_type": pan_file.content_type,
+                "fallback_data": {
+                    "name": "RAJESH KUMAR SHARMA",
+                    "pan": "ABCDE1234F",
+                    "confidence": 0.95
+                }
+            }
+        
+        logger.info("TEST: File validation passed")
+        return {
+            "status": "test_complete", 
+            "validation": "passed",
+            "filename": pan_file.filename,
+            "content_type": pan_file.content_type,
+            "size": len(content),
+            "demo_data": {
+                "name": "RAJESH KUMAR SHARMA",
+                "pan": "ABCDE1234F", 
+                "confidence": 0.95
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"TEST: Error in test PAN upload: {e}")
+        return {
+            "status": "test_error",
+            "error": str(e),
+            "fallback_data": {
+                "name": "RAJESH KUMAR SHARMA",
+                "pan": "ABCDE1234F",
+                "confidence": 0.95
+            }
+        }
+
+@router.post("/test-salary-upload") 
+async def test_salary_upload(salary_file: UploadFile = File(...)):
+    """Test endpoint specifically for salary upload debugging"""
+    try:
+        logger.info(f"TEST: Salary file received: {salary_file.filename}, type: {salary_file.content_type}, size: {salary_file.size}")
+        
+        # Read file content
+        content = await salary_file.read()
+        logger.info(f"TEST: File content length: {len(content)}")
+        
+        return {
+            "status": "test_complete",
+            "filename": salary_file.filename,
+            "content_type": salary_file.content_type,
+            "size": len(content),
+            "demo_income_data": {
+                "monthly_income": 75000,
+                "company_name": "Tech Solutions Pvt Ltd",
+                "confidence": 0.85
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"TEST: Error in test salary upload: {e}")
+        return {
+            "status": "test_error",
+            "error": str(e),
+            "demo_income_data": {
+                "monthly_income": 75000,
+                "company_name": "Tech Solutions Pvt Ltd", 
+                "confidence": 0.85
+            }
+        }
 
 @router.get("/test-claude")
 async def test_claude_api():
