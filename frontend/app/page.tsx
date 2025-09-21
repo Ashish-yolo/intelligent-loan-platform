@@ -94,13 +94,17 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-            <PhoneIcon className="h-8 w-8 text-white" />
+            <span className="text-2xl font-bold text-white">U</span>
+          </div>
+          <div className="mt-4">
+            <h1 className="text-2xl font-bold text-white">Umoney</h1>
+            <p className="text-sm text-blue-400 mt-1">Your Money, Your Choice, Your Future</p>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-white">
-            Get Your Loan in Minutes
+            Get Personal Loan up to ₹50 Lakhs with Umoney
           </h2>
           <p className="mt-2 text-sm text-gray-300">
-            AI-powered instant loan approval with competitive rates
+            ✓ Instant AI Approval ✓ Rates from 16% ✓ No Hidden Charges ✓ 100% Digital
           </p>
         </div>
 
@@ -110,19 +114,19 @@ export default function LandingPage() {
             <div className="w-10 h-10 bg-green-600/20 border border-green-500/30 rounded-full flex items-center justify-center">
               <BoltIcon className="w-5 h-5 text-green-400" />
             </div>
-            <span className="text-xs text-gray-300">Instant Decision</span>
+            <span className="text-xs text-gray-300">Instant AI Approval</span>
           </div>
           <div className="flex flex-col items-center space-y-2">
             <div className="w-10 h-10 bg-blue-600/20 border border-blue-500/30 rounded-full flex items-center justify-center">
               <ShieldCheckIcon className="w-5 h-5 text-blue-400" />
             </div>
-            <span className="text-xs text-gray-300">No Hidden Fees</span>
+            <span className="text-xs text-gray-300">Rates from 16%</span>
           </div>
           <div className="flex flex-col items-center space-y-2">
             <div className="w-10 h-10 bg-purple-600/20 border border-purple-500/30 rounded-full flex items-center justify-center">
               <CheckCircleIcon className="w-5 h-5 text-purple-400" />
             </div>
-            <span className="text-xs text-gray-300">Digital Process</span>
+            <span className="text-xs text-gray-300">100% Digital</span>
           </div>
         </div>
 
@@ -253,16 +257,19 @@ export default function LandingPage() {
         {/* Trust indicators */}
         <div className="grid grid-cols-1 gap-3 text-center">
           <div className="flex items-center justify-center space-x-2 text-gray-300">
+            <span className="text-sm font-medium text-blue-400">10L+ Happy Customers</span>
+            <span className="text-gray-500">•</span>
+            <span className="text-sm font-medium text-green-400">RBI Approved</span>
+            <span className="text-gray-500">•</span>
+            <span className="text-sm font-medium text-yellow-400">4.9★ Rating</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2 text-gray-300">
             <ShieldCheckIcon className="h-4 w-4 text-green-400" />
             <span className="text-sm">Your data is secure and encrypted</span>
           </div>
           <div className="flex items-center justify-center space-x-2 text-gray-300">
             <BoltIcon className="h-4 w-4 text-blue-400" />
             <span className="text-sm">Get approved in under 2 minutes</span>
-          </div>
-          <div className="flex items-center justify-center space-x-2 text-gray-300">
-            <CurrencyRupeeIcon className="h-4 w-4 text-yellow-400" />
-            <span className="text-sm">Loans from ₹50,000 to ₹20,00,000</span>
           </div>
         </div>
       </div>
