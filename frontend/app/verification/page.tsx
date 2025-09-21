@@ -9,7 +9,8 @@ import {
   MapPinIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  BanknotesIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
@@ -48,6 +49,8 @@ export default function VerificationPage() {
 
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [incomeData, setIncomeData] = useState<any>(null)
+  const [bureauScore, setBureauScore] = useState<number>(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -78,9 +81,21 @@ export default function VerificationPage() {
           }
         }))
         setDataLoaded(true)
+        
+        // Store income data separately for display
+        if (data.income) {
+          setIncomeData(data.income)
+          localStorage.setItem('incomeVerificationData', JSON.stringify(data.income))
+        }
       } catch (error) {
         console.error('Error loading extracted data:', error)
       }
+    }
+
+    // Load bureau score
+    const score = localStorage.getItem('bureauScore')
+    if (score) {
+      setBureauScore(parseInt(score))
     }
   }, [router])
 
@@ -350,6 +365,63 @@ export default function VerificationPage() {
               </div>
             </div>
           </div>
+
+          {/* Income Verification Display */}
+          {incomeData && (
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <BanknotesIcon className="h-6 w-6 text-green-400" />
+                <h2 className="text-xl font-semibold text-white">Income Verification</h2>
+              </div>
+
+              <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 mb-4">
+                <div className="flex items-center space-x-3 mb-2">
+                  <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                  <span className="text-green-400 font-medium">Income Successfully Verified</span>
+                </div>
+                <p className="text-green-300 text-sm">
+                  Your income has been verified and will be used for loan assessment.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-green-400">
+                    ₹{incomeData.monthly_income?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-gray-400 text-sm">Monthly Income</div>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="text-lg font-semibold text-blue-400 capitalize">
+                    {incomeData.source?.replace('_', ' ') || 'Not specified'}
+                  </div>
+                  <div className="text-gray-400 text-sm">Income Source</div>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="text-lg font-semibold text-purple-400">
+                    {Math.round((incomeData.confidence || 0) * 100)}%
+                  </div>
+                  <div className="text-gray-400 text-sm">Verification Confidence</div>
+                </div>
+              </div>
+
+              {bureauScore > 0 && (
+                <div className="mt-4 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-400 font-medium">Estimated Credit Score</span>
+                    <span className="text-2xl font-bold text-blue-400">{bureauScore}</span>
+                  </div>
+                  <div className="text-blue-300 text-sm mt-1">
+                    {bureauScore >= 780 ? 'Excellent credit profile' : 
+                     bureauScore >= 720 ? 'Good credit profile' : 
+                     'Fair credit profile'}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Bureau Consent */}
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">

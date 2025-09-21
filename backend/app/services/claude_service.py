@@ -160,6 +160,42 @@ class ClaudeService:
             logger.error(f"Error in document analysis: {e}")
             return {"success": False, "error": str(e)}
 
+    async def analyze_document(self, image_data: str, prompt: str) -> str:
+        """Analyze document image using Claude Vision"""
+        try:
+            response = self.client.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=1000,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/jpeg",
+                                    "data": image_data
+                                }
+                            },
+                            {
+                                "type": "text", 
+                                "text": prompt
+                            }
+                        ]
+                    }
+                ]
+            )
+            
+            return response.content[0].text
+
+        except Exception as e:
+            logger.error(f"Error in document analysis: {e}")
+            return json.dumps({
+                "error": "Document analysis failed",
+                "confidence": 0.0
+            })
+
     async def generate_policy_explanation(self, policy_result: Dict[str, Any], application_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate human-readable explanation of policy decision"""
         try:

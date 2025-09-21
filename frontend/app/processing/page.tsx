@@ -26,6 +26,18 @@ const PROCESSING_STEPS = [
   },
   {
     id: 2,
+    title: 'Verifying income',
+    subtitle: 'Processing income documentation',
+    icon: UserGroupIcon,
+    duration: 3500,
+    facts: [
+      'Income verification ensures accurate loan assessment',
+      'Our AI extracts income data with 95% accuracy',
+      'Multiple verification methods for different credit profiles'
+    ]
+  },
+  {
+    id: 3,
     title: 'Fetching credit report',
     subtitle: 'Connecting to credit bureaus securely',
     icon: UserGroupIcon,
@@ -37,7 +49,7 @@ const PROCESSING_STEPS = [
     ]
   },
   {
-    id: 3,
+    id: 4,
     title: 'Analyzing credit profile',
     subtitle: 'AI-powered risk assessment in progress',
     icon: CalculatorIcon,
@@ -49,7 +61,7 @@ const PROCESSING_STEPS = [
     ]
   },
   {
-    id: 4,
+    id: 5,
     title: 'Calculating best offer',
     subtitle: 'Optimizing terms for your profile',
     icon: SparklesIcon,
@@ -61,7 +73,7 @@ const PROCESSING_STEPS = [
     ]
   },
   {
-    id: 5,
+    id: 6,
     title: 'Finalizing your loan',
     subtitle: 'Preparing your personalized offer',
     icon: CheckCircleIcon,
@@ -74,24 +86,52 @@ const PROCESSING_STEPS = [
   }
 ]
 
-const LOAN_FACTS = [
-  '💡 Did you know? Personal loans don\'t require collateral',
-  '⚡ Fact: Digital loans are 80% faster than traditional ones',
-  '🎯 Smart tip: Lower EMIs mean you pay less total interest',
-  '📊 India\'s digital lending market grows 40% annually',
-  '🔐 All loan data is encrypted with bank-grade security',
-  '💰 Pre-approved loans have 95% instant approval rates',
-  '🌟 Credit scores above 750 get the best interest rates',
-  '📱 Mobile-first lending is the future of finance'
-]
+const getSmartLoanFacts = (incomeData: any, bureauScore: number) => {
+  const baseFacts = [
+    '💡 Did you know? Personal loans don\'t require collateral',
+    '⚡ Fact: Digital loans are 80% faster than traditional ones',
+    '🎯 Smart tip: Lower EMIs mean you pay less total interest',
+    '📊 India\'s digital lending market grows 40% annually',
+    '🔐 All loan data is encrypted with bank-grade security',
+    '💰 Pre-approved loans have 95% instant approval rates',
+    '🌟 Credit scores above 750 get the best interest rates',
+    '📱 Mobile-first lending is the future of finance'
+  ]
+
+  const smartFacts = []
+
+  // Add income-specific facts
+  if (incomeData) {
+    if (incomeData.source === 'input') {
+      smartFacts.push('🎉 High credit score = simplified income verification!')
+    } else {
+      smartFacts.push('📄 Document-based verification ensures accurate assessment')
+    }
+    
+    if (incomeData.monthly_income > 100000) {
+      smartFacts.push('💪 Higher income typically means better loan terms')
+    }
+  }
+
+  // Add bureau score specific facts
+  if (bureauScore >= 780) {
+    smartFacts.push('⭐ Excellent credit score qualifies for premium rates')
+  } else if (bureauScore >= 720) {
+    smartFacts.push('✅ Good credit score opens up great loan options')
+  }
+
+  return [...smartFacts, ...baseFacts]
+}
 
 export default function ProcessingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
   const [currentFact, setCurrentFact] = useState(0)
-  const [timeRemaining, setTimeRemaining] = useState(18)
+  const [timeRemaining, setTimeRemaining] = useState(20)
   const [typewriterText, setTypewriterText] = useState('')
   const [showFinalAnimation, setShowFinalAnimation] = useState(false)
+  const [incomeData, setIncomeData] = useState<any>(null)
+  const [bureauScore, setBureauScore] = useState<number>(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -100,6 +140,21 @@ export default function ProcessingPage() {
     if (!token) {
       router.push('/')
       return
+    }
+
+    // Load income data and bureau score
+    const income = localStorage.getItem('incomeVerificationData')
+    if (income) {
+      try {
+        setIncomeData(JSON.parse(income))
+      } catch (error) {
+        console.error('Error loading income data:', error)
+      }
+    }
+
+    const score = localStorage.getItem('bureauScore')
+    if (score) {
+      setBureauScore(parseInt(score))
     }
   }, [router])
 
@@ -137,8 +192,9 @@ export default function ProcessingPage() {
       }, 1000)
 
       // Fact rotation
+      const smartFacts = getSmartLoanFacts(incomeData, bureauScore)
       factInterval = setInterval(() => {
-        setCurrentFact(prev => (prev + 1) % LOAN_FACTS.length)
+        setCurrentFact(prev => (prev + 1) % smartFacts.length)
       }, 2500)
 
       // Process each step
@@ -338,7 +394,7 @@ export default function ProcessingPage() {
             <h3 className="text-lg font-semibold text-white">Did you know?</h3>
           </div>
           <p className="text-gray-300 text-lg animate-fade-in">
-            {LOAN_FACTS[currentFact]}
+            {getSmartLoanFacts(incomeData, bureauScore)[currentFact]}
           </p>
         </div>
 

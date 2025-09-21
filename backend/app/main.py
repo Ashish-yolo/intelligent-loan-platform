@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
-from app.routes import auth, applications, underwriting, policy
+from app.routes import auth, applications, underwriting, policy, document_processing
 from app.services.supabase_service import supabase_service
 from app.services.claude_service import claude_service
 
@@ -63,6 +63,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(applications.router, prefix="/api/applications", tags=["applications"])
 app.include_router(underwriting.router, prefix="/api/underwriting", tags=["underwriting"])
 app.include_router(policy.router, prefix="/api/policy", tags=["policy"])
+app.include_router(document_processing.router, prefix="/api/documents", tags=["document-processing"])
 
 if __name__ == "__main__":
     import uvicorn
