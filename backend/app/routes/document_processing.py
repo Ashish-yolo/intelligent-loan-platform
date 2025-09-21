@@ -194,28 +194,30 @@ async def extract_documents(
             
             # Validate file type - use fallback instead of throwing error
             if not pan_file.content_type or not any(ct in pan_file.content_type.lower() for ct in ['image', 'pdf']):
-                logger.warning("PROCESSING: PAN file type validation failed, using fallback data")
+                logger.warning("PROCESSING: PAN file type validation failed")
                 extracted_data["pan"] = {
-                    "name": "RAJESH KUMAR SHARMA",
-                    "pan": "ABCDE1234F", 
-                    "dob": "15/08/1985",
-                    "confidence": 0.95,
+                    "name": "INVALID FILE TYPE",
+                    "pan": "XXXXX0000X", 
+                    "dob": "01/01/1990",
+                    "confidence": 0.0,
                     "document_type": "PAN",
-                    "processing_note": "Demo mode - file validation bypassed"
+                    "processing_note": f"File type validation failed: {pan_file.content_type}",
+                    "error_type": "invalid_file_type"
                 }
             else:
                 logger.info("PROCESSING: PAN file type validation passed, reading content...")
                 pan_content = await pan_file.read()
                 logger.info(f"PROCESSING: PAN file content read, length: {len(pan_content)}")
                 if len(pan_content) == 0:
-                    logger.warning("PROCESSING: PAN file is empty, using fallback data")
+                    logger.warning("PROCESSING: PAN file is empty")
                     extracted_data["pan"] = {
-                        "name": "RAJESH KUMAR SHARMA",
-                        "pan": "ABCDE1234F", 
-                        "dob": "15/08/1985",
-                        "confidence": 0.95,
+                        "name": "EMPTY FILE",
+                        "pan": "XXXXX0000X", 
+                        "dob": "01/01/1990",
+                        "confidence": 0.0,
                         "document_type": "PAN",
-                        "processing_note": "Demo mode - empty file"
+                        "processing_note": "File is empty - no content to process",
+                        "error_type": "empty_file"
                     }
                 else:
                     # Process file (convert PDF to image if needed)
@@ -225,14 +227,16 @@ async def extract_documents(
                         pan_base64 = optimize_image_for_api(pan_base64)
                         logger.info(f"PROCESSING: PAN file processed successfully, media_type: {media_type}, base64_length: {len(pan_base64)}")
                     except Exception as e:
-                        logger.error(f"PROCESSING: Failed to process PAN file: {e}, using fallback data")
+                        logger.error(f"PROCESSING: Failed to process PAN file: {e}")
+                        # Use transparent error messaging instead of dummy data
                         extracted_data["pan"] = {
-                            "name": "RAJESH KUMAR SHARMA",
-                            "pan": "ABCDE1234F", 
-                            "dob": "15/08/1985",
-                            "confidence": 0.95,
+                            "name": "FILE PROCESSING FAILED",
+                            "pan": "XXXXX0000X", 
+                            "dob": "01/01/1990",
+                            "confidence": 0.0,
                             "document_type": "PAN",
-                            "processing_note": "Demo mode - file processing failed"
+                            "processing_note": f"File processing error: {str(e)[:100]}",
+                            "error_type": "file_processing_failed"
                         }
                     else:
                         # File processed successfully, attempt Claude extraction
@@ -670,19 +674,21 @@ async def extract_salary_slip(
             salary_base64 = optimize_image_for_api(salary_base64)
             logger.info(f"Salary slip processed successfully, media_type: {media_type}")
         except Exception as e:
-            logger.error(f"Failed to process salary slip: {e}, using fallback data")
+            logger.error(f"Failed to process salary slip: {e}")
+            # Use transparent error messaging instead of dummy data
             return {
                 "success": True,
                 "income_data": {
-                    "employee_name": "Rajesh Kumar Sharma",
-                    "company_name": "Tech Solutions Pvt Ltd",
-                    "salary_month": "03/2024",
-                    "gross_salary": 85000,
-                    "net_salary": 75000,
-                    "monthly_income": 75000,
-                    "confidence": 0.85,
+                    "employee_name": "FILE PROCESSING FAILED",
+                    "company_name": "CANNOT PROCESS PDF/IMAGE",
+                    "salary_month": "00/0000",
+                    "gross_salary": 0,
+                    "net_salary": 0,
+                    "monthly_income": 0,
+                    "confidence": 0.0,
                     "document_type": "Salary Slip",
-                    "processing_note": "Demo mode - file processing failed"
+                    "processing_note": f"File processing error: {str(e)[:100]}",
+                    "error_type": "file_processing_failed"
                 }
             }
         
