@@ -111,11 +111,22 @@ async def extract_documents(
             """
             
             try:
+                # Check if Claude client is initialized
+                if not claude_service.client:
+                    logger.error("Claude client not initialized for PAN processing")
+                    raise Exception("Claude client not initialized")
+                
+                logger.info("Making real Claude API call for PAN extraction")
                 pan_result = await claude_service.analyze_document(
                     image_data=pan_base64,
                     prompt=pan_extraction_prompt
                 )
-                logger.info(f"PAN extraction result: {pan_result}")
+                logger.info(f"Real Claude API response for PAN: {pan_result[:200]}...")
+                
+                # Verify this is not a fallback response
+                if "Fallback data - API failed" in pan_result:
+                    logger.error("Claude service returned fallback data instead of real API response")
+                    raise Exception("Claude API returned fallback data")
                 
                 # Try to parse JSON, with fallback
                 try:
@@ -127,17 +138,20 @@ async def extract_documents(
                         clean_result = clean_result.replace('```', '').strip()
                     
                     extracted_data["pan"] = json.loads(clean_result)
-                    logger.info("Successfully parsed PAN JSON")
+                    extracted_data["pan"]["is_real_api"] = True
+                    logger.info("Successfully parsed real Claude API PAN JSON")
                 except json.JSONDecodeError as je:
-                    logger.warning(f"Failed to parse PAN JSON: {je}, using fallback")
-                    # Use intelligent fallback
+                    logger.warning(f"Failed to parse PAN JSON from real API: {je}, raw response: {pan_result}")
+                    # Use intelligent fallback only if JSON parsing fails
                     extracted_data["pan"] = {
                         "name": "RAJESH KUMAR SHARMA",
                         "pan": "ABCDE1234F", 
                         "dob": "15/08/1985",
                         "confidence": 0.85,
                         "document_type": "PAN",
-                        "note": "Fallback data - JSON parse failed"
+                        "is_real_api": False,
+                        "note": "Fallback data - JSON parse failed from real API",
+                        "raw_response": pan_result[:500]
                     }
             except Exception as e:
                 logger.error(f"PAN processing error: {e}")
@@ -146,6 +160,7 @@ async def extract_documents(
                     "pan": "Processing failed", 
                     "confidence": 0.0,
                     "document_type": "PAN",
+                    "is_real_api": False,
                     "error": str(e)
                 }
         
@@ -184,11 +199,22 @@ async def extract_documents(
             """
             
             try:
+                # Check if Claude client is initialized
+                if not claude_service.client:
+                    logger.error("Claude client not initialized for Aadhaar processing")
+                    raise Exception("Claude client not initialized")
+                
+                logger.info("Making real Claude API call for Aadhaar extraction")
                 aadhaar_result = await claude_service.analyze_document(
                     image_data=aadhaar_base64,
                     prompt=aadhaar_extraction_prompt
                 )
-                logger.info(f"Aadhaar extraction result: {aadhaar_result}")
+                logger.info(f"Real Claude API response for Aadhaar: {aadhaar_result[:200]}...")
+                
+                # Verify this is not a fallback response
+                if "Fallback data - API failed" in aadhaar_result:
+                    logger.error("Claude service returned fallback data instead of real API response")
+                    raise Exception("Claude API returned fallback data")
                 
                 # Try to parse JSON, with fallback
                 try:
@@ -200,9 +226,10 @@ async def extract_documents(
                         clean_result = clean_result.replace('```', '').strip()
                     
                     extracted_data["aadhaar"] = json.loads(clean_result)
-                    logger.info("Successfully parsed Aadhaar JSON")
+                    extracted_data["aadhaar"]["is_real_api"] = True
+                    logger.info("Successfully parsed real Claude API Aadhaar JSON")
                 except json.JSONDecodeError as je:
-                    logger.warning(f"Failed to parse Aadhaar JSON: {je}, using fallback")
+                    logger.warning(f"Failed to parse Aadhaar JSON from real API: {je}, raw response: {aadhaar_result}")
                     extracted_data["aadhaar"] = {
                         "name": "Rajesh Kumar Sharma",
                         "dob": "15/08/1985",
@@ -211,7 +238,9 @@ async def extract_documents(
                         "aadhaar_last4": "1234",
                         "confidence": 0.85,
                         "document_type": "Aadhaar",
-                        "note": "Fallback data - JSON parse failed"
+                        "is_real_api": False,
+                        "note": "Fallback data - JSON parse failed from real API",
+                        "raw_response": aadhaar_result[:500]
                     }
             except Exception as e:
                 logger.error(f"Aadhaar processing error: {e}")
@@ -220,6 +249,7 @@ async def extract_documents(
                     "dob": "Processing failed",
                     "confidence": 0.0,
                     "document_type": "Aadhaar",
+                    "is_real_api": False,
                     "error": str(e)
                 }
         
