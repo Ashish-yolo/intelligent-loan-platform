@@ -59,9 +59,7 @@ const UmoneyLogo = ({ className = "h-8" }: { className?: string }) => (
 export default function LandingPage() {
   // Calculator state
   const [loanAmount, setLoanAmount] = useState(200000)
-  const [monthlyIncome, setMonthlyIncome] = useState('25001-40000')
   const [employmentType, setEmploymentType] = useState('salaried')
-  const [city, setCity] = useState('Delhi')
   const [emi, setEmi] = useState(0)
   const [interestRate, setInterestRate] = useState(12.99)
   const [tenure, setTenure] = useState(24)
@@ -70,8 +68,7 @@ export default function LandingPage() {
   const [showForm, setShowForm] = useState(false)
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
-  const [name, setName] = useState('')
-  const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone')
+  const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [loading, setLoading] = useState(false)
   const [fetchingOtp, setFetchingOtp] = useState(false)
   const [otpReceived, setOtpReceived] = useState('')
@@ -139,7 +136,7 @@ export default function LandingPage() {
 
     setLoading(true)
     try {
-      const response = await verifyOTP(phone, otp, name)
+      const response = await verifyOTP(phone, otp, '')
       if (response.access_token) {
         localStorage.setItem('token', response.access_token)
         localStorage.setItem('user', JSON.stringify(response.user))
@@ -297,32 +294,13 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Form Grid */}
-                <div className="grid md:grid-cols-3 gap-6">
-                  {/* Monthly Income */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Monthly Income
-                    </label>
-                    <select 
-                      value={monthlyIncome}
-                      onChange={(e) => setMonthlyIncome(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="15000-25000">₹15,000 to ₹25,000</option>
-                      <option value="25001-40000">₹25,001 to ₹40,000</option>
-                      <option value="40001-60000">₹40,001 to ₹60,000</option>
-                      <option value="60001-100000">₹60,001 to ₹1,00,000</option>
-                      <option value="100000+">Above ₹1,00,000</option>
-                    </select>
-                  </div>
-
-                  {/* Employment Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                {/* Employment Type Only */}
+                <div className="max-w-md mx-auto">
+                  <div className="text-center">
+                    <label className="block text-lg font-semibold text-white mb-4">
                       Employment Type
                     </label>
-                    <div className="flex space-x-4 pt-2">
+                    <div className="flex justify-center space-x-8">
                       <label className="flex items-center">
                         <input
                           type="radio"
@@ -330,9 +308,9 @@ export default function LandingPage() {
                           value="salaried"
                           checked={employmentType === 'salaried'}
                           onChange={(e) => setEmploymentType(e.target.value)}
-                          className="mr-2 text-blue-600"
+                          className="mr-3 text-blue-600 scale-125"
                         />
-                        <span className="text-white">Salaried</span>
+                        <span className="text-white text-lg">Salaried</span>
                       </label>
                       <label className="flex items-center">
                         <input
@@ -341,33 +319,11 @@ export default function LandingPage() {
                           value="self-employed"
                           checked={employmentType === 'self-employed'}
                           onChange={(e) => setEmploymentType(e.target.value)}
-                          className="mr-2 text-blue-600"
+                          className="mr-3 text-blue-600 scale-125"
                         />
-                        <span className="text-white">Self-employed</span>
+                        <span className="text-white text-lg">Self-employed</span>
                       </label>
                     </div>
-                  </div>
-
-                  {/* City */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      City
-                    </label>
-                    <select 
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Delhi">Delhi</option>
-                      <option value="Mumbai">Mumbai</option>
-                      <option value="Bangalore">Bangalore</option>
-                      <option value="Chennai">Chennai</option>
-                      <option value="Hyderabad">Hyderabad</option>
-                      <option value="Pune">Pune</option>
-                      <option value="Kolkata">Kolkata</option>
-                      <option value="Ahmedabad">Ahmedabad</option>
-                      <option value="Others">Others</option>
-                    </select>
                   </div>
                 </div>
 
@@ -475,20 +431,6 @@ export default function LandingPage() {
                     </div>
                   )}
                   
-                  <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                      Your Name (Optional)
-                    </label>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter your full name"
-                    />
-                  </div>
                   <div className="mb-6">
                     <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
                       Enter OTP

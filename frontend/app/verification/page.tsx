@@ -50,7 +50,6 @@ export default function VerificationPage() {
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   const [incomeData, setIncomeData] = useState<any>(null)
-  const [bureauScore, setBureauScore] = useState<number>(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -92,11 +91,6 @@ export default function VerificationPage() {
       }
     }
 
-    // Load bureau score
-    const score = localStorage.getItem('bureauScore')
-    if (score) {
-      setBureauScore(parseInt(score))
-    }
   }, [router])
 
   const handleInputChange = (field: string, value: string) => {
@@ -407,19 +401,6 @@ export default function VerificationPage() {
                 </div>
               </div>
 
-              {bureauScore > 0 && (
-                <div className="mt-4 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-400 font-medium">Estimated Credit Score</span>
-                    <span className="text-2xl font-bold text-blue-400">{bureauScore}</span>
-                  </div>
-                  <div className="text-blue-300 text-sm mt-1">
-                    {bureauScore >= 780 ? 'Excellent credit profile' : 
-                     bureauScore >= 720 ? 'Good credit profile' : 
-                     'Fair credit profile'}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -457,21 +438,29 @@ export default function VerificationPage() {
             </label>
           </div>
 
-          {/* Submit Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !formData.consentGiven}
-            className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-700 disabled:to-gray-700 text-white font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <span>Verify & Continue</span>
-                <ArrowRightIcon className="h-5 w-5" />
-              </>
-            )}
-          </button>
+          {/* Navigation Buttons */}
+          <div className="flex space-x-4">
+            <button
+              onClick={() => router.back()}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-black transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+            >
+              <span>← Back</span>
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !formData.consentGiven}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:from-gray-700 disabled:to-gray-700 text-white font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span>Continue</span>
+                  <ArrowRightIcon className="h-5 w-5" />
+                </>
+              )}
+            </button>
+          </div>
 
           <div className="text-center">
             <p className="text-gray-400 text-sm">
