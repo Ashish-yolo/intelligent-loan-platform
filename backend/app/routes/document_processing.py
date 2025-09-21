@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 import json
 import base64
 import logging
+import os
 from datetime import datetime
 
 from app.services.claude_service import claude_service
@@ -24,6 +25,44 @@ async def test_document_api():
             "/extract-bank-statement"
         ]
     }
+
+@router.get("/test-claude")
+async def test_claude_api():
+    """Test Claude API connection"""
+    try:
+        if not claude_service.client:
+            return {
+                "status": "error",
+                "message": "Claude client not initialized",
+                "anthropic_api_key_set": bool(claude_service.client)
+            }
+        
+        # Test simple text generation
+        response = claude_service.client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=100,
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say 'Hello, this is a test' and nothing else."
+                }
+            ]
+        )
+        
+        return {
+            "status": "success",
+            "message": "Claude API is working",
+            "test_response": response.content[0].text,
+            "model": "claude-3-haiku-20240307"
+        }
+        
+    except Exception as e:
+        logger.error(f"Claude API test failed: {e}")
+        return {
+            "status": "error",
+            "message": f"Claude API test failed: {str(e)}",
+            "anthropic_api_key_set": "ANTHROPIC_API_KEY" in os.environ
+        }
 
 @router.post("/extract-documents")
 async def extract_documents(
@@ -80,16 +119,25 @@ async def extract_documents(
                 
                 # Try to parse JSON, with fallback
                 try:
-                    extracted_data["pan"] = json.loads(pan_result)
-                except json.JSONDecodeError:
-                    logger.warning("Failed to parse PAN JSON, using fallback")
-                    # Try to extract data with a simpler approach
+                    # Clean the response - remove any markdown formatting
+                    clean_result = pan_result.strip()
+                    if clean_result.startswith('```json'):
+                        clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                    elif clean_result.startswith('```'):
+                        clean_result = clean_result.replace('```', '').strip()
+                    
+                    extracted_data["pan"] = json.loads(clean_result)
+                    logger.info("Successfully parsed PAN JSON")
+                except json.JSONDecodeError as je:
+                    logger.warning(f"Failed to parse PAN JSON: {je}, using fallback")
+                    # Use intelligent fallback
                     extracted_data["pan"] = {
                         "name": "RAJESH KUMAR SHARMA",
                         "pan": "ABCDE1234F", 
                         "dob": "15/08/1985",
                         "confidence": 0.85,
-                        "document_type": "PAN"
+                        "document_type": "PAN",
+                        "note": "Fallback data - JSON parse failed"
                     }
             except Exception as e:
                 logger.error(f"PAN processing error: {e}")
@@ -144,9 +192,17 @@ async def extract_documents(
                 
                 # Try to parse JSON, with fallback
                 try:
-                    extracted_data["aadhaar"] = json.loads(aadhaar_result)
-                except json.JSONDecodeError:
-                    logger.warning("Failed to parse Aadhaar JSON, using fallback")
+                    # Clean the response - remove any markdown formatting
+                    clean_result = aadhaar_result.strip()
+                    if clean_result.startswith('```json'):
+                        clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                    elif clean_result.startswith('```'):
+                        clean_result = clean_result.replace('```', '').strip()
+                    
+                    extracted_data["aadhaar"] = json.loads(clean_result)
+                    logger.info("Successfully parsed Aadhaar JSON")
+                except json.JSONDecodeError as je:
+                    logger.warning(f"Failed to parse Aadhaar JSON: {je}, using fallback")
                     extracted_data["aadhaar"] = {
                         "name": "Rajesh Kumar Sharma",
                         "dob": "15/08/1985",
@@ -154,7 +210,8 @@ async def extract_documents(
                         "address": "House No. 123, Sector 45, Gurgaon, Haryana - 122001",
                         "aadhaar_last4": "1234",
                         "confidence": 0.85,
-                        "document_type": "Aadhaar"
+                        "document_type": "Aadhaar",
+                        "note": "Fallback data - JSON parse failed"
                     }
             except Exception as e:
                 logger.error(f"Aadhaar processing error: {e}")
@@ -243,9 +300,17 @@ async def extract_salary_slip(
             
             # Try to parse JSON, with fallback
             try:
-                income_data = json.loads(salary_result)
-            except json.JSONDecodeError:
-                logger.warning("Failed to parse salary JSON, using fallback")
+                # Clean the response - remove any markdown formatting
+                clean_result = salary_result.strip()
+                if clean_result.startswith('```json'):
+                    clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                elif clean_result.startswith('```'):
+                    clean_result = clean_result.replace('```', '').strip()
+                
+                income_data = json.loads(clean_result)
+                logger.info("Successfully parsed salary JSON")
+            except json.JSONDecodeError as je:
+                logger.warning(f"Failed to parse salary JSON: {je}, using fallback")
                 # Fallback with reasonable mock data
                 income_data = {
                     "employee_name": "Rajesh Kumar Sharma",
@@ -255,7 +320,8 @@ async def extract_salary_slip(
                     "net_salary": 72000,
                     "monthly_income": 72000,
                     "confidence": 0.85,
-                    "document_type": "Salary Slip"
+                    "document_type": "Salary Slip",
+                    "note": "Fallback data - JSON parse failed"
                 }
         except Exception as e:
             logger.error(f"Salary processing error: {e}")
@@ -331,9 +397,17 @@ async def extract_bank_statement(
             
             # Try to parse JSON, with fallback
             try:
-                income_data = json.loads(bank_result)
-            except json.JSONDecodeError:
-                logger.warning("Failed to parse bank statement JSON, using fallback")
+                # Clean the response - remove any markdown formatting
+                clean_result = bank_result.strip()
+                if clean_result.startswith('```json'):
+                    clean_result = clean_result.replace('```json', '').replace('```', '').strip()
+                elif clean_result.startswith('```'):
+                    clean_result = clean_result.replace('```', '').strip()
+                
+                income_data = json.loads(clean_result)
+                logger.info("Successfully parsed bank statement JSON")
+            except json.JSONDecodeError as je:
+                logger.warning(f"Failed to parse bank statement JSON: {je}, using fallback")
                 # Fallback with reasonable mock data
                 income_data = {
                     "account_holder": "Rajesh Kumar Sharma",
@@ -342,7 +416,8 @@ async def extract_bank_statement(
                     "average_monthly_income": 78000,
                     "monthly_income": 78000,
                     "confidence": 0.85,
-                    "document_type": "Bank Statement"
+                    "document_type": "Bank Statement",
+                    "note": "Fallback data - JSON parse failed"
                 }
         except Exception as e:
             logger.error(f"Bank statement processing error: {e}")
