@@ -68,6 +68,9 @@ async def test_claude_api():
 @router.post("/extract-documents")
 async def extract_documents(
     pan_file: Optional[UploadFile] = File(None),
+    aadhaar_front_file: Optional[UploadFile] = File(None),
+    aadhaar_back_file: Optional[UploadFile] = File(None),
+    # Legacy support for single aadhaar file
     aadhaar_file: Optional[UploadFile] = File(None),
     user_id: Optional[str] = Form(None)
 ):
@@ -76,7 +79,9 @@ async def extract_documents(
         logger.info("Starting document extraction process")
         extracted_data = {}
         
-        if not pan_file and not aadhaar_file:
+        # Check if we have any files to process
+        has_files = any([pan_file, aadhaar_front_file, aadhaar_back_file, aadhaar_file])
+        if not has_files:
             raise HTTPException(status_code=400, detail="At least one document file is required")
         
         # Process PAN card
@@ -177,113 +182,159 @@ async def extract_documents(
                     "error": str(e)
                 }
         
-        # Process Aadhaar card
+        # Process Aadhaar card(s) - support both single file and front/back
+        aadhaar_files_to_process = []
+        
+        # Handle legacy single aadhaar file
         if aadhaar_file:
-            logger.info(f"Processing Aadhaar file: {aadhaar_file.filename}, type: {aadhaar_file.content_type}")
+            aadhaar_files_to_process.append(("single", aadhaar_file))
+        
+        # Handle front and back files
+        if aadhaar_front_file:
+            aadhaar_files_to_process.append(("front", aadhaar_front_file))
+        if aadhaar_back_file:
+            aadhaar_files_to_process.append(("back", aadhaar_back_file))
+        
+        # Process all Aadhaar files
+        aadhaar_data = {}
+        for side, aadhaar_file in aadhaar_files_to_process:
+            logger.info(f"Processing Aadhaar {side} file: {aadhaar_file.filename}, type: {aadhaar_file.content_type}")
             
             # Validate file type
             if not aadhaar_file.content_type or not any(ct in aadhaar_file.content_type.lower() for ct in ['image', 'pdf']):
-                raise HTTPException(status_code=400, detail="Aadhaar file must be an image or PDF")
+                logger.error(f"Invalid Aadhaar {side} file type")
+                continue
             
             aadhaar_content = await aadhaar_file.read()
             if len(aadhaar_content) == 0:
-                raise HTTPException(status_code=400, detail="Aadhaar file is empty")
+                logger.error(f"Empty Aadhaar {side} file")
+                continue
             
             # Process file (convert PDF to image if needed)
             try:
                 aadhaar_base64, media_type = process_document_file(aadhaar_content, aadhaar_file.content_type)
                 aadhaar_base64 = optimize_image_for_api(aadhaar_base64)
-                logger.info(f"Aadhaar file processed successfully, media_type: {media_type}")
+                logger.info(f"Aadhaar {side} file processed successfully, media_type: {media_type}")
             except Exception as e:
-                logger.error(f"Failed to process Aadhaar file: {e}")
-                raise HTTPException(status_code=400, detail=f"Failed to process Aadhaar file: {str(e)}")
+                logger.error(f"Failed to process Aadhaar {side} file: {e}")
+                continue
             
-            aadhaar_extraction_prompt = """
-            You are a document processing AI for a legitimate financial institution conducting KYC (Know Your Customer) verification for loan applications. This is a legally compliant process for identity verification.
-            
-            Extract the following information from this Aadhaar card image for loan application processing:
-            
-            REQUIRED FIELDS:
-            - Cardholder's name (the primary person's name on the card - NOT the father's/guardian's name)
-            - Date of birth (DD/MM/YYYY format if visible)
-            - Gender (Male/Female as shown on card if visible)
-            - Complete residential address (as single string)
-            - Last 4 digits of Aadhaar number only (for privacy compliance)
-            
-            IMPORTANT DISTINCTIONS:
-            - Look for the main cardholder's name (usually larger text or prominently displayed)
-            - Do NOT use the father's name that appears after "S/O:" or "आत्मज:" 
-            - The father's name is typically shown as "S/O: [Father's Name]" or in Hindi as "आत्मज: [Father's Name]"
-            
-            COMPLIANCE NOTE: This extraction is for legitimate financial KYC purposes as required by banking regulations.
-            
-            Return ONLY a valid JSON object in this exact format:
-            {
-                "name": "CARDHOLDER'S ACTUAL NAME (not father's name)",
-                "dob": "DD/MM/YYYY or null if not visible",
-                "gender": "Male/Female or null if not visible",
-                "address": "complete address as single string",
-                "aadhaar_last4": "XXXX (last 4 digits only)",
-                "confidence": 0.92,
-                "document_type": "Aadhaar"
-            }
-            """
+            # Customize prompt based on side
+            if side == "front":
+                aadhaar_extraction_prompt = """
+                You are a document processing AI for a legitimate financial institution conducting KYC verification. 
+                
+                Extract information from this Aadhaar card FRONT side:
+                
+                FRONT SIDE typically contains:
+                - Cardholder's full name (prominently displayed)
+                - Date of birth
+                - Gender
+                - Photo of cardholder
+                
+                Return ONLY a valid JSON object:
+                {
+                    "name": "CARDHOLDER'S FULL NAME from front",
+                    "dob": "DD/MM/YYYY or null if not visible",
+                    "gender": "Male/Female or null if not visible",
+                    "side": "front",
+                    "confidence": 0.92,
+                    "document_type": "Aadhaar Front"
+                }
+                """
+            elif side == "back":
+                aadhaar_extraction_prompt = """
+                You are a document processing AI for a legitimate financial institution conducting KYC verification.
+                
+                Extract information from this Aadhaar card BACK side:
+                
+                BACK SIDE typically contains:
+                - Complete residential address
+                - Father's/Husband's name (after S/O: or W/O:)
+                - QR code and Aadhaar number
+                
+                Return ONLY a valid JSON object:
+                {
+                    "address": "complete residential address",
+                    "father_name": "father's name from S/O: field or null",
+                    "aadhaar_last4": "XXXX (last 4 digits only)",
+                    "side": "back",
+                    "confidence": 0.92,
+                    "document_type": "Aadhaar Back"
+                }
+                """
+            else:
+                # Single file - try to extract all available info
+                aadhaar_extraction_prompt = """
+                You are a document processing AI for a legitimate financial institution conducting KYC verification.
+                
+                Extract information from this Aadhaar card image:
+                
+                Return ONLY a valid JSON object:
+                {
+                    "name": "CARDHOLDER'S NAME (not S/O: name) or null if not visible",
+                    "dob": "DD/MM/YYYY or null if not visible",
+                    "gender": "Male/Female or null if not visible",
+                    "address": "complete address or null if not visible",
+                    "father_name": "father's name from S/O: field or null",
+                    "aadhaar_last4": "XXXX (last 4 digits only) or null",
+                    "side": "unknown",
+                    "confidence": 0.92,
+                    "document_type": "Aadhaar"
+                }
+                """
             
             try:
                 # Check if Claude client is initialized
                 if not claude_service.client:
-                    logger.error("Claude client not initialized for Aadhaar processing")
-                    raise Exception("Claude client not initialized")
+                    logger.error(f"Claude client not initialized for Aadhaar {side} processing")
+                    continue
                 
-                logger.info("Making real Claude API call for Aadhaar extraction")
+                logger.info(f"Making real Claude API call for Aadhaar {side} extraction")
                 aadhaar_result = await claude_service.analyze_document(
                     image_data=aadhaar_base64,
                     prompt=aadhaar_extraction_prompt,
                     media_type=media_type
                 )
-                logger.info(f"Real Claude API response for Aadhaar: {aadhaar_result[:200]}...")
+                logger.info(f"Real Claude API response for Aadhaar {side}: {aadhaar_result[:200]}...")
                 
                 # Verify this is not a fallback response
                 if "Fallback data - API failed" in aadhaar_result:
-                    logger.error("Claude service returned fallback data instead of real API response")
-                    raise Exception("Claude API returned fallback data")
+                    logger.error(f"Claude service returned fallback data for Aadhaar {side}")
+                    continue
                 
-                # Try to parse JSON, with fallback
+                # Try to parse JSON
                 try:
-                    # Clean the response - remove any markdown formatting
+                    # Clean the response
                     clean_result = aadhaar_result.strip()
                     if clean_result.startswith('```json'):
                         clean_result = clean_result.replace('```json', '').replace('```', '').strip()
                     elif clean_result.startswith('```'):
                         clean_result = clean_result.replace('```', '').strip()
                     
-                    extracted_data["aadhaar"] = json.loads(clean_result)
-                    extracted_data["aadhaar"]["is_real_api"] = True
-                    logger.info("Successfully parsed real Claude API Aadhaar JSON")
+                    aadhaar_side_data = json.loads(clean_result)
+                    aadhaar_side_data["is_real_api"] = True
+                    aadhaar_data[side] = aadhaar_side_data
+                    logger.info(f"Successfully parsed real Claude API Aadhaar {side} JSON")
                 except json.JSONDecodeError as je:
-                    logger.warning(f"Failed to parse Aadhaar JSON from real API: {je}, raw response: {aadhaar_result}")
-                    extracted_data["aadhaar"] = {
-                        "name": "Rajesh Kumar Sharma",
-                        "dob": "15/08/1985",
-                        "gender": "Male",
-                        "address": "House No. 123, Sector 45, Gurgaon, Haryana - 122001",
-                        "aadhaar_last4": "1234",
-                        "confidence": 0.85,
-                        "document_type": "Aadhaar",
-                        "is_real_api": False,
-                        "note": "Fallback data - JSON parse failed from real API",
-                        "raw_response": aadhaar_result[:500]
+                    logger.warning(f"Failed to parse Aadhaar {side} JSON from real API: {je}")
+                    aadhaar_data[side] = {
+                        "error": "JSON parse failed",
+                        "raw_response": aadhaar_result[:500],
+                        "side": side,
+                        "is_real_api": False
                     }
             except Exception as e:
-                logger.error(f"Aadhaar processing error: {e}")
-                extracted_data["aadhaar"] = {
-                    "name": "Processing failed",
-                    "dob": "Processing failed",
-                    "confidence": 0.0,
-                    "document_type": "Aadhaar",
-                    "is_real_api": False,
-                    "error": str(e)
+                logger.error(f"Aadhaar {side} processing error: {e}")
+                aadhaar_data[side] = {
+                    "error": str(e),
+                    "side": side,
+                    "is_real_api": False
                 }
+        
+        # Combine Aadhaar data from multiple sides if available
+        if aadhaar_data:
+            extracted_data["aadhaar"] = combine_aadhaar_data(aadhaar_data)
         
         # Calculate mock bureau score based on extracted data quality
         bureau_score = calculate_mock_bureau_score(extracted_data)
@@ -514,6 +565,49 @@ async def extract_bank_statement(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bank statement extraction failed: {str(e)}")
+
+def combine_aadhaar_data(aadhaar_data: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Combine data from front and back Aadhaar cards into a single object
+    """
+    combined = {
+        "document_type": "Aadhaar",
+        "is_real_api": False,
+        "confidence": 0.0,
+        "sides_processed": list(aadhaar_data.keys())
+    }
+    
+    # Collect all available data
+    for side, data in aadhaar_data.items():
+        if isinstance(data, dict) and not data.get("error"):
+            # Update confidence to highest among all sides
+            if data.get("confidence", 0) > combined["confidence"]:
+                combined["confidence"] = data["confidence"]
+            
+            # Mark as real API if any side used real API
+            if data.get("is_real_api"):
+                combined["is_real_api"] = True
+            
+            # Collect specific fields based on what's available
+            if data.get("name") and data["name"] != "null":
+                combined["name"] = data["name"]
+            if data.get("dob") and data["dob"] != "null":
+                combined["dob"] = data["dob"]
+            if data.get("gender") and data["gender"] != "null":
+                combined["gender"] = data["gender"]
+            if data.get("address") and data["address"] != "null":
+                combined["address"] = data["address"]
+            if data.get("father_name") and data["father_name"] != "null":
+                combined["father_name"] = data["father_name"]
+            if data.get("aadhaar_last4") and data["aadhaar_last4"] != "null":
+                combined["aadhaar_last4"] = data["aadhaar_last4"]
+    
+    # Set defaults for missing fields
+    for field in ["name", "dob", "gender", "address", "father_name", "aadhaar_last4"]:
+        if field not in combined:
+            combined[field] = None
+    
+    return combined
 
 def calculate_mock_bureau_score(extracted_data: Dict[str, Any]) -> int:
     """Calculate a mock bureau score based on data extraction quality"""
