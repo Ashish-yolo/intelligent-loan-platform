@@ -524,13 +524,123 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-12">Our Partner Banks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
-            {['HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank', 'Kotak', 'IndusInd', 'Yes Bank', 'BOB', 'Canara', 'PNB', 'Union Bank', 'IDFC First'].map((bank) => (
-              <div key={bank} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <div className="h-12 bg-gray-700 rounded flex items-center justify-center">
-                  <span className="text-gray-400 text-xs font-medium">{bank}</span>
-                </div>
+            {/* HDFC Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#004c8f"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">HDFC BANK</text>
+              </svg>
+            </div>
+            
+            {/* ICICI Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#f57c00"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">ICICI BANK</text>
+              </svg>
+            </div>
+            
+            {/* State Bank of India */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#1e3a8a"/>
+                <circle cx="40" cy="30" r="15" fill="#fbbf24"/>
+                <text x="120" y="35" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">SBI</text>
+              </svg>
+            </div>
+            
+            {/* Axis Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#8b1538"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">AXIS BANK</text>
+              </svg>
+            </div>
+            
+            {/* Kotak Mahindra Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#e31837"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">KOTAK</text>
+              </svg>
+            </div>
+            
+            {/* IndusInd Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#00a651"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="15" fontWeight="bold">IndusInd</text>
+              </svg>
+            </div>
+            
+            {/* Yes Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#004b87"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">YES BANK</text>
+              </svg>
+            </div>
+            
+            {/* Bank of Baroda */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#f57c00"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">BOB</text>
+              </svg>
+            </div>
+            
+            {/* Canara Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#8b1538"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="15" fontWeight="bold">CANARA</text>
+              </svg>
+            </div>
+            
+            {/* Punjab National Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#1e3a8a"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">PNB</text>
+              </svg>
+            </div>
+            
+            {/* Union Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#e31837"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">UNION BANK</text>
+              </svg>
+            </div>
+            
+            {/* IDFC First Bank */}
+            <div className="bg-white rounded-lg p-4 h-16 flex items-center justify-center transition-transform hover:scale-105">
+              <svg viewBox="0 0 200 60" className="h-8">
+                <rect width="200" height="60" fill="#004c8f"/>
+                <text x="100" y="35" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">IDFC FIRST</text>
+              </svg>
+            </div>
+          </div>
+          
+          {/* Trust indicators under banks */}
+          <div className="mt-12 text-center">
+            <p className="text-gray-400 text-sm mb-4">Trusted by 50+ leading financial institutions</p>
+            <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <ShieldCheckIcon className="w-4 h-4 text-green-400" />
+                <span>RBI Approved</span>
               </div>
-            ))}
+              <span>•</span>
+              <div className="flex items-center space-x-2">
+                <CheckCircleIcon className="w-4 h-4 text-blue-400" />
+                <span>Secure Processing</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center space-x-2">
+                <StarIcon className="w-4 h-4 text-yellow-400" />
+                <span>Best Rates Guaranteed</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
