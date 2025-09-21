@@ -160,12 +160,22 @@ class ClaudeService:
             logger.error(f"Error in document analysis: {e}")
             return {"success": False, "error": str(e)}
 
-    async def analyze_document(self, image_data: str, prompt: str) -> str:
+    async def analyze_document(self, image_data: str, prompt: str, media_type: str = "image/jpeg") -> str:
         """Analyze document image using Claude Vision"""
         try:
+            # Determine media type from data if not provided
+            if image_data.startswith('/9j/') or image_data.startswith('iVBOR'):
+                # JPEG or PNG
+                if image_data.startswith('/9j/'):
+                    media_type = "image/jpeg"
+                elif image_data.startswith('iVBOR'):
+                    media_type = "image/png"
+            
+            logger.info(f"Analyzing document with media type: {media_type}")
+            
             response = self.client.messages.create(
                 model="claude-3-sonnet-20240229",
-                max_tokens=1000,
+                max_tokens=1500,
                 messages=[
                     {
                         "role": "user",
@@ -174,7 +184,7 @@ class ClaudeService:
                                 "type": "image",
                                 "source": {
                                     "type": "base64",
-                                    "media_type": "image/jpeg",
+                                    "media_type": media_type,
                                     "data": image_data
                                 }
                             },
@@ -187,13 +197,17 @@ class ClaudeService:
                 ]
             )
             
-            return response.content[0].text
+            result = response.content[0].text
+            logger.info(f"Claude response: {result[:200]}...")
+            return result
 
         except Exception as e:
             logger.error(f"Error in document analysis: {e}")
             return json.dumps({
-                "error": "Document analysis failed",
-                "confidence": 0.0
+                "error": f"Document analysis failed: {str(e)}",
+                "confidence": 0.0,
+                "name": "Analysis Failed",
+                "document_type": "Unknown"
             })
 
     async def generate_policy_explanation(self, policy_result: Dict[str, Any], application_data: Dict[str, Any]) -> Dict[str, Any]:

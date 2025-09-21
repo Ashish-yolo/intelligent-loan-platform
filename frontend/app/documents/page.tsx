@@ -105,7 +105,11 @@ export default function DocumentsPage() {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents/extract-documents`, {
+      // Get API URL with fallback
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      console.log(`Calling API: ${apiUrl}/api/documents/extract-documents`)
+      
+      const response = await fetch(`${apiUrl}/api/documents/extract-documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -113,11 +117,16 @@ export default function DocumentsPage() {
         body: formData
       })
 
+      console.log(`API Response status: ${response.status}`)
+
       if (!response.ok) {
-        throw new Error('Document processing failed')
+        const errorText = await response.text()
+        console.error(`API Error: ${response.status} - ${errorText}`)
+        throw new Error(`Document processing failed: ${response.status}`)
       }
 
       const result = await response.json()
+      console.log('API Result:', result)
       
       if (result.success) {
         // Store bureau score and income collection method
@@ -147,9 +156,14 @@ export default function DocumentsPage() {
       
     } catch (error) {
       console.error('Real API failed, using fallback:', error)
+      toast.error('Using demo data - API connection failed')
       
-      // Fallback to mock data if real API fails
+      // Always use fallback data for now to ensure smooth user experience
       if (type === 'pan') {
+        // Store mock bureau score
+        localStorage.setItem('bureauScore', '780')
+        localStorage.setItem('incomeCollectionMethod', 'input')
+        
         return {
           name: 'RAJESH KUMAR SHARMA',
           pan: 'ABCDE1234F',
@@ -277,11 +291,14 @@ export default function DocumentsPage() {
     }
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const endpoint = type === 'salary_slip' 
         ? '/api/documents/extract-salary-slip'
         : '/api/documents/extract-bank-statement'
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+      console.log(`Calling income API: ${apiUrl}${endpoint}`)
+      
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -289,11 +306,16 @@ export default function DocumentsPage() {
         body: formData
       })
 
+      console.log(`Income API Response status: ${response.status}`)
+
       if (!response.ok) {
-        throw new Error('Income document processing failed')
+        const errorText = await response.text()
+        console.error(`Income API Error: ${response.status} - ${errorText}`)
+        throw new Error(`Income document processing failed: ${response.status}`)
       }
 
       const result = await response.json()
+      console.log('Income API Result:', result)
       
       if (result.success && result.income_data) {
         const income: IncomeData = {
@@ -310,6 +332,7 @@ export default function DocumentsPage() {
       }
     } catch (error) {
       console.error('Income processing failed:', error)
+      toast.error('Using demo data - Income API connection failed')
       
       // Fallback to mock data
       const income: IncomeData = {
