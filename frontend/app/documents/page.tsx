@@ -43,7 +43,7 @@ export default function DocumentsPage() {
     extractedData: {}
   })
   
-  const [aadhaarDoc, setAadhaarDoc] = useState<DocumentState>({
+  const [aadhaarFrontDoc, setAadhaarFrontDoc] = useState<DocumentState>({
     file: null,
     uploading: false,
     processing: false,
@@ -51,7 +51,15 @@ export default function DocumentsPage() {
     extractedData: {}
   })
 
-  const [dragOver, setDragOver] = useState<'pan' | 'aadhaar' | null>(null)
+  const [aadhaarBackDoc, setAadhaarBackDoc] = useState<DocumentState>({
+    file: null,
+    uploading: false,
+    processing: false,
+    processed: false,
+    extractedData: {}
+  })
+
+  const [dragOver, setDragOver] = useState<'pan' | 'aadhaar_front' | 'aadhaar_back' | null>(null)
   const [showIncomeCollection, setShowIncomeCollection] = useState(false)
   const [incomeCollectionMethod, setIncomeCollectionMethod] = useState<'input' | 'upload'>('input')
   const [incomeInput, setIncomeInput] = useState('')
@@ -69,9 +77,9 @@ export default function DocumentsPage() {
     }
   }, [router])
 
-  // Trigger income collection when both documents are processed
+  // Trigger income collection when all required documents are processed
   useEffect(() => {
-    if (panDoc.processed && aadhaarDoc.processed && !showIncomeCollection) {
+    if (panDoc.processed && (aadhaarFrontDoc.processed || aadhaarBackDoc.processed) && !showIncomeCollection) {
       const bureauScore = localStorage.getItem('bureauScore')
       const method = localStorage.getItem('incomeCollectionMethod')
       
@@ -86,16 +94,18 @@ export default function DocumentsPage() {
         )
       }
     }
-  }, [panDoc.processed, aadhaarDoc.processed, showIncomeCollection])
+  }, [panDoc.processed, aadhaarFrontDoc.processed, aadhaarBackDoc.processed, showIncomeCollection])
 
-  // Real AI processing with Anthropic API
-  const processDocument = async (file: File, type: 'pan' | 'aadhaar'): Promise<ExtractedData> => {
+  // Real AI processing with Anthropic API  
+  const processDocument = async (file: File, type: 'pan' | 'aadhaar_front' | 'aadhaar_back'): Promise<ExtractedData> => {
     const formData = new FormData()
     
     if (type === 'pan') {
       formData.append('pan_file', file)
-    } else {
-      formData.append('aadhaar_file', file)
+    } else if (type === 'aadhaar_front') {
+      formData.append('aadhaar_front_file', file)
+    } else if (type === 'aadhaar_back') {
+      formData.append('aadhaar_back_file', file)
     }
     
     // Add user ID for tracking
@@ -141,7 +151,7 @@ export default function DocumentsPage() {
             dob: result.extracted_data.pan.dob,
             confidence: result.extracted_data.pan.confidence || 0.95
           }
-        } else if (type === 'aadhaar' && result.extracted_data.aadhaar) {
+        } else if ((type === 'aadhaar_front' || type === 'aadhaar_back') && result.extracted_data.aadhaar) {
           return {
             name: result.extracted_data.aadhaar.name,
             address: result.extracted_data.aadhaar.address,
@@ -181,8 +191,10 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleFileUpload = useCallback(async (file: File, type: 'pan' | 'aadhaar') => {
-    const setState = type === 'pan' ? setPanDoc : setAadhaarDoc
+  const handleFileUpload = useCallback(async (file: File, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
+    const setState = type === 'pan' ? setPanDoc : 
+                     type === 'aadhaar_front' ? setAadhaarFrontDoc : 
+                     setAadhaarBackDoc
 
     // Validate file
     if (!file.type.includes('image') && !file.type.includes('pdf')) {
