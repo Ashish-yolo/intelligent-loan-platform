@@ -1103,7 +1103,7 @@ async def store_extraction_results(user_id: str, extracted_data: Dict[str, Any])
     """Store document extraction results in database"""
     try:
         # Store in ai_analysis table
-        await supabase_service.client.table("ai_analysis").insert({
+        result = supabase_service.client.table("ai_analysis").insert({
             "application_id": None,  # Will be linked later when application is created
             "analysis_type": "document_extraction",
             "input_data": {"user_id": user_id},
@@ -1112,13 +1112,14 @@ async def store_extraction_results(user_id: str, extracted_data: Dict[str, Any])
             "confidence_score": extracted_data.get("pan", {}).get("confidence", 0) * 100,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
+        logger.info(f"Successfully stored extraction results for user {user_id}")
     except Exception as e:
-        print(f"Error storing extraction results: {e}")
+        logger.error(f"Error storing extraction results: {e}")
 
 async def store_income_data(user_id: str, income_data: Dict[str, Any], source_type: str):
     """Store income extraction results in database"""
     try:
-        await supabase_service.client.table("ai_analysis").insert({
+        result = supabase_service.client.table("ai_analysis").insert({
             "application_id": None,
             "analysis_type": f"income_extraction_{source_type}",
             "input_data": {"user_id": user_id, "source": source_type},
@@ -1127,5 +1128,6 @@ async def store_income_data(user_id: str, income_data: Dict[str, Any], source_ty
             "confidence_score": income_data.get("confidence", 0) * 100,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
+        logger.info(f"Successfully stored income data for user {user_id} from {source_type}")
     except Exception as e:
-        print(f"Error storing income data: {e}")
+        logger.error(f"Error storing income data: {e}")

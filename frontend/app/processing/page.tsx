@@ -180,65 +180,103 @@ export default function ProcessingPage() {
 
   // Main processing logic
   useEffect(() => {
+    if (!incomeData && !bureauScore) return // Wait for data to load
+    
     let stepTimeout: NodeJS.Timeout
     let progressInterval: NodeJS.Timeout
     let factInterval: NodeJS.Timeout
     let countdownInterval: NodeJS.Timeout
+    let isProcessing = true
 
     const processSteps = async () => {
-      // Countdown timer
-      countdownInterval = setInterval(() => {
-        setTimeRemaining(prev => Math.max(0, prev - 1))
-      }, 1000)
+      try {
+        // Countdown timer
+        countdownInterval = setInterval(() => {
+          setTimeRemaining(prev => Math.max(0, prev - 1))
+        }, 1000)
 
-      // Fact rotation
-      const smartFacts = getSmartLoanFacts(incomeData, bureauScore)
-      factInterval = setInterval(() => {
-        setCurrentFact(prev => (prev + 1) % smartFacts.length)
-      }, 2500)
-
-      // Process each step
-      for (let i = 0; i < PROCESSING_STEPS.length; i++) {
-        setCurrentStep(i)
-        
-        const step = PROCESSING_STEPS[i]
-        const stepDuration = step.duration
-        const progressIncrement = 100 / PROCESSING_STEPS.length
-        
-        // Animate progress for this step
-        let currentProgress = i * progressIncrement
-        const targetProgress = (i + 1) * progressIncrement
-        
-        progressInterval = setInterval(() => {
-          currentProgress += 0.5
-          if (currentProgress >= targetProgress) {
-            currentProgress = targetProgress
-            clearInterval(progressInterval)
+        // Fact rotation
+        const smartFacts = getSmartLoanFacts(incomeData, bureauScore)
+        factInterval = setInterval(() => {
+          if (isProcessing) {
+            setCurrentFact(prev => (prev + 1) % smartFacts.length)
           }
-          setProgress(currentProgress)
-        }, stepDuration / ((targetProgress - (i * progressIncrement)) / 0.5))
+        }, 2500)
 
-        await new Promise(resolve => {
-          stepTimeout = setTimeout(resolve, stepDuration)
-        })
+        // Process each step
+        for (let i = 0; i < PROCESSING_STEPS.length && isProcessing; i++) {
+          setCurrentStep(i)
+          
+          const step = PROCESSING_STEPS[i]
+          const stepDuration = step.duration
+          const progressIncrement = 100 / PROCESSING_STEPS.length
+          
+          // Animate progress for this step
+          let currentProgress = i * progressIncrement
+          const targetProgress = (i + 1) * progressIncrement
+          
+          const progressStep = 0.8
+          const intervalTime = stepDuration / ((targetProgress - currentProgress) / progressStep)
+          
+          progressInterval = setInterval(() => {
+            if (!isProcessing) {
+              clearInterval(progressInterval)
+              return
+            }
+            
+            currentProgress += progressStep
+            if (currentProgress >= targetProgress) {
+              currentProgress = targetProgress
+              clearInterval(progressInterval)
+            }
+            setProgress(Math.min(currentProgress, 100))
+          }, intervalTime)
+
+          await new Promise(resolve => {
+            stepTimeout = setTimeout(() => {
+              if (progressInterval) clearInterval(progressInterval)
+              resolve(void 0)
+            }, stepDuration)
+          })
+        }
+
+        // Ensure we reach 100%
+        if (isProcessing) {
+          setProgress(100)
+          
+          // Final animation
+          setTimeout(() => {
+            if (isProcessing) {
+              setShowFinalAnimation(true)
+              setTimeout(() => {
+                if (isProcessing) {
+                  router.push('/loan-terms')
+                }
+              }, 2000)
+            }
+          }, 500)
+        }
+      } catch (error) {
+        console.error('Processing error:', error)
+        // Handle error gracefully
+        setTimeout(() => {
+          if (isProcessing) {
+            router.push('/loan-terms')
+          }
+        }, 1000)
       }
-
-      // Final animation
-      setShowFinalAnimation(true)
-      setTimeout(() => {
-        router.push('/loan-terms')
-      }, 2000)
     }
 
     processSteps()
 
     return () => {
-      clearTimeout(stepTimeout)
-      clearInterval(progressInterval)
-      clearInterval(factInterval)
-      clearInterval(countdownInterval)
+      isProcessing = false
+      if (stepTimeout) clearTimeout(stepTimeout)
+      if (progressInterval) clearInterval(progressInterval)
+      if (factInterval) clearInterval(factInterval)
+      if (countdownInterval) clearInterval(countdownInterval)
     }
-  }, [router])
+  }, [router, incomeData, bureauScore])
 
   if (showFinalAnimation) {
     return (

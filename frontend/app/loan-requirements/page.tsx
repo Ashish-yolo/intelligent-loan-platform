@@ -95,7 +95,7 @@ export default function LoanRequirementsPage() {
             Let's find your perfect loan
           </h1>
           <p className="text-gray-300">
-            Tell us what you need and we'll calculate the best terms for you
+            Based on your profile analysis, here are your personalized loan options
           </p>
         </div>
 

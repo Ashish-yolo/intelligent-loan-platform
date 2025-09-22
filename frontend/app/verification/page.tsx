@@ -789,7 +789,61 @@ export default function VerificationPage() {
             </button>
           </div>
 
-          <div className="text-center">
+          {/* Simple Fraud Check Result */}
+          {dataLoaded && (() => {
+            const extractedData = localStorage.getItem('extractedData');
+            if (extractedData) {
+              const data = JSON.parse(extractedData);
+              const panFraud = data.pan?.fraud_analysis;
+              const incomeFraud = incomeData?.fraud_analysis;
+              
+              // Determine overall fraud status
+              let overallStatus = 'Verified';
+              let statusColor = 'green';
+              
+              if (panFraud && panFraud.recommendation === 'reject') {
+                overallStatus = 'Fraudulent';
+                statusColor = 'red';
+              } else if (incomeFraud && incomeFraud.recommendation === 'reject') {
+                overallStatus = 'Fraudulent';
+                statusColor = 'red';
+              } else if (panFraud && panFraud.risk_level === 'high') {
+                overallStatus = 'Under Review';
+                statusColor = 'yellow';
+              }
+              
+              return (
+                <div className="mt-6 p-6 bg-gray-800/50 rounded-xl border-2 border-gray-600">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-white mb-3">Document Fraud Check Result</h3>
+                    <div className={`inline-flex items-center space-x-3 px-6 py-3 rounded-full bg-${statusColor}-600/20 border border-${statusColor}-500/30`}>
+                      {overallStatus === 'Verified' ? (
+                        <CheckCircleIcon className="h-6 w-6 text-green-400" />
+                      ) : overallStatus === 'Fraudulent' ? (
+                        <div className="h-6 w-6 text-red-400">❌</div>
+                      ) : (
+                        <div className="h-6 w-6 text-yellow-400">⚠️</div>
+                      )}
+                      <span className={`text-xl font-bold text-${statusColor}-400`}>
+                        {overallStatus}
+                      </span>
+                    </div>
+                    <p className={`text-${statusColor}-300 text-sm mt-2`}>
+                      {overallStatus === 'Verified' ? 
+                        'All documents have been verified as authentic' :
+                        overallStatus === 'Fraudulent' ?
+                        'Document authenticity concerns detected' :
+                        'Additional verification may be required'
+                      }
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+          <div className="text-center mt-4">
             <p className="text-gray-400 text-sm">
               🔒 Your information is encrypted and stored securely
             </p>
