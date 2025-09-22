@@ -260,11 +260,60 @@ export default function VerificationPage() {
 
         {dataLoaded && (
           <div className="mb-6">
-            <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 flex items-center space-x-3">
-              <CheckCircleIcon className="h-6 w-6 text-green-400 flex-shrink-0" />
-              <div>
-                <p className="text-green-400 font-medium">Documents processed successfully!</p>
-                <p className="text-green-300 text-sm">Information extracted and pre-filled below</p>
+            <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <CheckCircleIcon className="h-6 w-6 text-green-400 flex-shrink-0" />
+                <div>
+                  <p className="text-green-400 font-medium">Documents processed successfully!</p>
+                  <p className="text-green-300 text-sm">Information extracted and pre-filled below</p>
+                </div>
+              </div>
+              
+              {/* Document Confidence Indicators */}
+              <div className="grid md:grid-cols-3 gap-3 mt-3">
+                {(() => {
+                  const extractedData = localStorage.getItem('extractedData');
+                  if (extractedData) {
+                    const data = JSON.parse(extractedData);
+                    const elements = [];
+                    
+                    if (data.pan && data.pan.confidence > 0) {
+                      elements.push(
+                        <div key="pan" className="bg-blue-600/20 rounded-lg p-2 text-center">
+                          <div className="text-blue-400 font-bold text-lg">
+                            {Math.round(data.pan.confidence * 100)}%
+                          </div>
+                          <div className="text-blue-300 text-xs">PAN Confidence</div>
+                        </div>
+                      );
+                    }
+                    
+                    if (data.aadhaar && data.aadhaar.confidence > 0) {
+                      elements.push(
+                        <div key="aadhaar" className="bg-purple-600/20 rounded-lg p-2 text-center">
+                          <div className="text-purple-400 font-bold text-lg">
+                            {Math.round(data.aadhaar.confidence * 100)}%
+                          </div>
+                          <div className="text-purple-300 text-xs">Aadhaar Confidence</div>
+                        </div>
+                      );
+                    }
+                    
+                    if (incomeData && incomeData.confidence > 0) {
+                      elements.push(
+                        <div key="income" className="bg-green-600/20 rounded-lg p-2 text-center">
+                          <div className="text-green-400 font-bold text-lg">
+                            {Math.round(incomeData.confidence * 100)}%
+                          </div>
+                          <div className="text-green-300 text-xs">Income Confidence</div>
+                        </div>
+                      );
+                    }
+                    
+                    return elements;
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           </div>
@@ -501,31 +550,57 @@ export default function VerificationPage() {
                                        panFraud.risk_level === 'medium' ? 'yellow' : 'red';
                       
                       return (
-                        <div className="bg-gray-800/50 rounded-lg p-4">
-                          <h3 className="text-white font-medium mb-3 flex items-center">
-                            <IdentificationIcon className="h-5 w-5 mr-2 text-blue-400" />
-                            PAN Card Analysis
-                          </h3>
+                        <div className="bg-gray-800/50 rounded-lg p-4 border-l-4 border-blue-400">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-white font-medium flex items-center">
+                              <IdentificationIcon className="h-5 w-5 mr-2 text-blue-400" />
+                              PAN Card Analysis
+                            </h3>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-blue-400">
+                                {Math.round((panFraud.confidence_score || 0) * 100)}%
+                              </div>
+                              <div className="text-xs text-gray-400">Confidence</div>
+                            </div>
+                          </div>
                           
-                          <div className="space-y-3">
+                          <div className="space-y-4">
+                            {/* Confidence Progress Bar */}
+                            <div>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-400">Fraud Detection Confidence</span>
+                                <span className="text-blue-400 font-medium">
+                                  {Math.round((panFraud.confidence_score || 0) * 100)}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-400 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${(panFraud.confidence_score || 0) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+
+                            {/* Authenticity Progress Bar */}
+                            <div>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-400">Document Authenticity</span>
+                                <span className="text-green-400 font-medium">
+                                  {Math.round((panFraud.authenticity_score || 0) * 100)}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className="bg-green-400 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${(panFraud.authenticity_score || 0) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                            
                             <div className="flex justify-between">
                               <span className="text-gray-400">Risk Level:</span>
                               <span className={`text-${riskColor}-400 font-medium capitalize`}>
                                 {panFraud.risk_level}
-                              </span>
-                            </div>
-                            
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Confidence:</span>
-                              <span className="text-blue-400 font-medium">
-                                {Math.round((panFraud.confidence_score || 0) * 100)}%
-                              </span>
-                            </div>
-                            
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Authenticity:</span>
-                              <span className="text-green-400 font-medium">
-                                {Math.round((panFraud.authenticity_score || 0) * 100)}%
                               </span>
                             </div>
                             
@@ -564,25 +639,42 @@ export default function VerificationPage() {
 
                 {/* Income Document Analysis */}
                 {incomeData && incomeData.fraud_analysis && (
-                  <div className="bg-gray-800/50 rounded-lg p-4">
-                    <h3 className="text-white font-medium mb-3 flex items-center">
-                      <BanknotesIcon className="h-5 w-5 mr-2 text-green-400" />
-                      Income Document Analysis
-                    </h3>
+                  <div className="bg-gray-800/50 rounded-lg p-4 border-l-4 border-green-400">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white font-medium flex items-center">
+                        <BanknotesIcon className="h-5 w-5 mr-2 text-green-400" />
+                        Income Document Analysis
+                      </h3>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-green-400">
+                          {Math.round((incomeData.fraud_analysis.confidence_score || 0) * 100)}%
+                        </div>
+                        <div className="text-xs text-gray-400">Confidence</div>
+                      </div>
+                    </div>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      {/* Confidence Progress Bar */}
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-400">Income Verification Confidence</span>
+                          <span className="text-green-400 font-medium">
+                            {Math.round((incomeData.fraud_analysis.confidence_score || 0) * 100)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-green-400 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${(incomeData.fraud_analysis.confidence_score || 0) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      
                       <div className="flex justify-between">
                         <span className="text-gray-400">Risk Level:</span>
                         <span className={`text-${incomeData.fraud_analysis.risk_level === 'low' ? 'green' : 
                                           incomeData.fraud_analysis.risk_level === 'medium' ? 'yellow' : 'red'}-400 font-medium capitalize`}>
                           {incomeData.fraud_analysis.risk_level}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Confidence:</span>
-                        <span className="text-blue-400 font-medium">
-                          {Math.round((incomeData.fraud_analysis.confidence_score || 0) * 100)}%
                         </span>
                       </div>
                       
