@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Intelligent Loan Platform API",
     description="AI-powered loan origination platform with intelligent underwriting",
-    version="1.0.1",  # Version bump to force deployment
+    version="1.0.2",  # URGENT: Force deployment of syntax fixes
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
