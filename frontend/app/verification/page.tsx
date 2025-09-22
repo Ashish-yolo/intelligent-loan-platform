@@ -30,6 +30,78 @@ interface FormData {
   consentGiven: boolean
 }
 
+// Helper function to parse Aadhaar address intelligently
+const parseAadhaarAddress = (address: string) => {
+  if (!address) {
+    return {
+      line1: '',
+      line2: '',
+      city: '',
+      state: '',
+      pincode: ''
+    }
+  }
+
+  // Remove S/O, W/O, D/O prefixes and extract the actual address
+  let cleanAddress = address
+  const soMatch = address.match(/^S\/O:\s*([^,]+),\s*(.+)$/)
+  if (soMatch) {
+    cleanAddress = soMatch[2] // Take everything after "S/O: Name,"
+  }
+
+  // Split by commas and clean up each part
+  const parts = cleanAddress.split(',').map(part => part.trim()).filter(part => part.length > 0)
+  
+  // Extract pincode (6 digits)
+  const pincodeMatch = address.match(/\b(\d{6})\b/)
+  const pincode = pincodeMatch ? pincodeMatch[1] : ''
+  
+  // Common Indian states (for better parsing)
+  const indianStates = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Delhi', 'Puducherry', 'Chandigarh', 'Dadra and Nagar Haveli', 'Daman and Diu',
+    'Lakshadweep', 'Ladakh', 'Jammu and Kashmir'
+  ]
+  
+  // Find state in the address parts
+  let state = ''
+  let stateIndex = -1
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (indianStates.some(s => s.toLowerCase() === parts[i].toLowerCase())) {
+      state = parts[i]
+      stateIndex = i
+      break
+    }
+  }
+  
+  // City is usually before the state
+  let city = ''
+  if (stateIndex > 0) {
+    city = parts[stateIndex - 1]
+  } else if (parts.length > 1) {
+    // If no state found, assume last non-pincode part is city
+    const lastPart = parts[parts.length - 1]
+    city = /\d{6}/.test(lastPart) && parts.length > 1 ? parts[parts.length - 2] : lastPart
+  }
+  
+  // Address lines are the remaining parts
+  const addressParts = parts.filter((part, index) => {
+    return index < stateIndex - 1 && !part.includes(pincode)
+  })
+  
+  return {
+    line1: addressParts[0] || '',
+    line2: addressParts.slice(1, 3).join(', ') || '',
+    city: city || '',
+    state: state || '',
+    pincode: pincode || ''
+  }
+}
+
 export default function VerificationPage() {
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -72,11 +144,7 @@ export default function VerificationPage() {
           panNumber: data.pan?.pan || '',
           address: {
             ...prev.address,
-            line1: data.aadhaar?.address?.split(',')[0] || '',
-            line2: data.aadhaar?.address?.split(',')[1] || '',
-            city: data.aadhaar?.address?.split(',')[2] || '',
-            state: data.aadhaar?.address?.split(',')[3] || '',
-            pincode: data.aadhaar?.address?.match(/\d{6}/)?.[0] || ''
+            ...parseAadhaarAddress(data.aadhaar?.address || '')
           }
         }))
         setDataLoaded(true)
@@ -284,9 +352,17 @@ export default function VerificationPage() {
 
           {/* Address Information */}
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <MapPinIcon className="h-6 w-6 text-purple-400" />
-              <h2 className="text-xl font-semibold text-white">Address Information</h2>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <MapPinIcon className="h-6 w-6 text-purple-400" />
+                <h2 className="text-xl font-semibold text-white">Address Information</h2>
+              </div>
+              {dataLoaded && formData.address.line1 && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <CheckCircleIcon className="h-4 w-4 text-green-400" />
+                  <span className="text-green-400">Auto-filled from Aadhaar</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
