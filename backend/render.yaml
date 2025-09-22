@@ -3,7 +3,7 @@ services:
     name: intelligent-loan-platform-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: ./install_deps.sh
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
