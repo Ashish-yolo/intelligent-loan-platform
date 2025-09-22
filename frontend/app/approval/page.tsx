@@ -225,7 +225,7 @@ export default function ApprovalPage() {
         </div>
 
         {/* Next Steps */}
-        <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-6 mb-8">
+        <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-6 mb-8">
           <h3 className="text-lg font-semibold text-white mb-4">What happens next?</h3>
           <div className="space-y-4">
             <div className="flex items-start space-x-4">

@@ -100,7 +100,7 @@ export default function LoanRequirementsPage() {
         </div>
 
         {/* Loan Amount */}
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
+        <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
           <label className="block text-lg font-medium text-white mb-4">
             How much do you need?
           </label>
@@ -130,7 +130,7 @@ export default function LoanRequirementsPage() {
         </div>
 
         {/* Tenure Selection */}
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
+        <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
           <label className="block text-lg font-medium text-white mb-4">
             Choose your repayment period
           </label>

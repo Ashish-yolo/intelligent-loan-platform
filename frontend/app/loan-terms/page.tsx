@@ -193,7 +193,7 @@ export default function LoanTermsPage() {
           {offers.map((offer) => (
             <div
               key={offer.id}
-              className={`relative bg-gray-900/50 backdrop-blur-sm border rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+              className={`relative bg-gray-900 bg-opacity-50 backdrop-blur-sm border rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
                 selectedOffer === offer.id
                   ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/25'
                   : 'border-gray-700 hover:border-gray-600'
@@ -271,7 +271,7 @@ export default function LoanTermsPage() {
         </div>
 
         {/* EMI Calculator */}
-        <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-6 mb-8">
+        <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-6 mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <CalculatorIcon className="h-6 w-6 text-purple-400" />
             <h3 className="text-lg font-semibold text-white">EMI Breakdown</h3>

@@ -355,7 +355,7 @@ export default function ProcessingPage() {
         </div>
 
         {/* Main Processing Card */}
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 mb-8 text-center relative">
+        <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 mb-8 text-center relative">
           {/* Progress Ring */}
           <div className="relative w-32 h-32 mx-auto mb-8">
             <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
@@ -451,13 +451,13 @@ export default function ProcessingPage() {
         {/* Security Indicators */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-gray-900/30 border border-gray-700/50 rounded-lg p-4 text-center">
-            <div className="w-8 h-8 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-2">
+            <div className="w-8 h-8 bg-green-600 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircleIcon className="h-5 w-5 text-green-400" />
             </div>
             <p className="text-gray-300 text-sm">256-bit Encryption</p>
           </div>
           <div className="bg-gray-900/30 border border-gray-700/50 rounded-lg p-4 text-center">
-            <div className="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-2">
+            <div className="w-8 h-8 bg-blue-600 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircleIcon className="h-5 w-5 text-blue-400" />
             </div>
             <p className="text-gray-300 text-sm">RBI Compliant</p>

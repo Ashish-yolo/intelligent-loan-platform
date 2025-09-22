@@ -378,7 +378,7 @@ export default function LandingPage() {
                   
                   {/* Fetching OTP Message */}
                   {fetchingOtp && (
-                    <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+                    <div className="bg-blue-600 bg-opacity-20 border border-blue-500/30 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                         <span className="text-blue-300 font-medium">Fetching OTP...</span>
@@ -389,7 +389,7 @@ export default function LandingPage() {
                   
                   {/* OTP Success Message */}
                   {otpReceived && !fetchingOtp && (
-                    <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4 mb-4">
+                    <div className="bg-green-600 bg-opacity-20 border border-green-500/30 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-3">
                         <CheckCircleIcon className="w-5 h-5 text-green-400" />
                         <span className="text-green-300 font-medium">OTP Retrieved Successfully!</span>
@@ -449,7 +449,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-gray-900/50">
+      <section className="py-16 bg-gray-900 bg-opacity-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             How It Works
@@ -509,7 +509,7 @@ export default function LandingPage() {
       </section>
 
       {/* Loan Benefits */}
-      <section className="py-16 bg-gray-900/50">
+      <section className="py-16 bg-gray-900 bg-opacity-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Why Choose Umoney Personal Loans?
@@ -646,7 +646,7 @@ export default function LandingPage() {
       </section>
 
       {/* Eligibility Section */}
-      <section className="py-16 bg-gray-900/50">
+      <section className="py-16 bg-gray-900 bg-opacity-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Personal Loan Eligibility

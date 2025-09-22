@@ -176,11 +176,11 @@ export default function MotivationPage() {
 
         {/* Trust Indicators */}
         <div className="grid grid-cols-2 gap-4 mt-8">
-          <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-lg p-4">
             <CheckCircleIcon className="h-6 w-6 text-green-400 mx-auto mb-2" />
             <p className="text-xs text-gray-300">Secure Process</p>
           </div>
-          <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-lg p-4">
             <CheckCircleIcon className="h-6 w-6 text-blue-400 mx-auto mb-2" />
             <p className="text-xs text-gray-300">Quick Approval</p>
           </div>

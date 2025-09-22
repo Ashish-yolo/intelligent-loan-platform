@@ -279,7 +279,7 @@ export default function VerificationPage() {
                     
                     if (data.pan && data.pan.confidence > 0) {
                       elements.push(
-                        <div key="pan" className="bg-blue-600/20 rounded-lg p-2 text-center">
+                        <div key="pan" className="bg-blue-600 bg-opacity-20 rounded-lg p-2 text-center">
                           <div className="text-blue-400 font-bold text-lg">
                             {Math.round(data.pan.confidence * 100)}%
                           </div>
@@ -301,7 +301,7 @@ export default function VerificationPage() {
                     
                     if (incomeData && incomeData.confidence > 0) {
                       elements.push(
-                        <div key="income" className="bg-green-600/20 rounded-lg p-2 text-center">
+                        <div key="income" className="bg-green-600 bg-opacity-20 rounded-lg p-2 text-center">
                           <div className="text-green-400 font-bold text-lg">
                             {Math.round(incomeData.confidence * 100)}%
                           </div>
@@ -321,7 +321,7 @@ export default function VerificationPage() {
 
         <div className="space-y-6">
           {/* Personal Information */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
             <div className="flex items-center space-x-3 mb-6">
               <UserIcon className="h-6 w-6 text-blue-400" />
               <h2 className="text-xl font-semibold text-white">Personal Information</h2>
@@ -372,7 +372,7 @@ export default function VerificationPage() {
           </div>
 
           {/* Document Numbers */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
             <div className="flex items-center space-x-3 mb-6">
               <IdentificationIcon className="h-6 w-6 text-green-400" />
               <h2 className="text-xl font-semibold text-white">Document Numbers</h2>
@@ -400,7 +400,7 @@ export default function VerificationPage() {
           </div>
 
           {/* Address Information */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <MapPinIcon className="h-6 w-6 text-purple-400" />
@@ -487,7 +487,7 @@ export default function VerificationPage() {
 
           {/* Income Verification Display */}
           {incomeData && (
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <BanknotesIcon className="h-6 w-6 text-green-400" />
                 <h2 className="text-xl font-semibold text-white">Income Verification</h2>
@@ -531,7 +531,7 @@ export default function VerificationPage() {
 
           {/* Fraud Analysis Section */}
           {dataLoaded && (
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
                 <h2 className="text-xl font-semibold text-white">Document Security Analysis</h2>
@@ -732,7 +732,7 @@ export default function VerificationPage() {
           )}
 
           {/* Bureau Consent */}
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
             <div className="flex items-center space-x-3 mb-6">
               <ShieldCheckIcon className="h-6 w-6 text-yellow-400" />
               <h2 className="text-xl font-semibold text-white">Credit Bureau Authorization</h2>

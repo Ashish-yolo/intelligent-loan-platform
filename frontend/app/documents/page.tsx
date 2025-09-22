@@ -429,7 +429,7 @@ export default function DocumentsPage() {
     title: string
     description: string
   }) => (
-    <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 transition-all duration-300 hover:border-gray-600">
+    <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 transition-all duration-300 hover:border-gray-600">
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-gray-400 text-sm mb-4">{description}</p>
 
@@ -440,7 +440,7 @@ export default function DocumentsPage() {
             ? 'border-blue-500 bg-blue-500/10 scale-105'
             : state.processed
             ? 'border-green-500 bg-green-500/10'
-            : 'border-gray-600 bg-gray-800/50 hover:border-gray-500 hover:bg-gray-800/70'
+            : 'border-gray-600 bg-gray-800 bg-opacity-50 hover:border-gray-500 hover:bg-gray-800 hover:bg-opacity-70'
         }`}
         onDragOver={(e) => {
           e.preventDefault()
@@ -526,7 +526,7 @@ export default function DocumentsPage() {
 
       {/* Extracted Data */}
       {state.processed && state.extractedData && (
-        <div className="mt-6 bg-gray-800/50 rounded-lg p-4 space-y-3 animate-fade-in">
+        <div className="mt-6 bg-gray-800 bg-opacity-50 rounded-lg p-4 space-y-3 animate-fade-in">
           <h4 className="text-white font-medium">Extracted Information:</h4>
           {Object.entries(state.extractedData).map(([key, value], index) => (
             key !== 'confidence' && value && (
@@ -608,7 +608,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* Instructions */}
-        <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-6 mb-8">
+        <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-6 mb-8">
           <h3 className="text-white font-semibold mb-4">📋 Upload Guidelines</h3>
           
           {/* Recommended Format Notice */}
