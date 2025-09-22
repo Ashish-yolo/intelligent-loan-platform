@@ -202,15 +202,28 @@ export default function DocumentsPage() {
                      type === 'aadhaar_front' ? setAadhaarFrontDoc : 
                      setAadhaarBackDoc
 
-    // Validate file
+    // Validate file with enhanced guidance
     if (!file.type.includes('image') && !file.type.includes('pdf')) {
-      toast.error('Please upload an image or PDF file')
+      toast.error('Please upload an image (JPG, PNG) or PDF file')
       return
     }
 
     if (file.size > 10 * 1024 * 1024) {
       toast.error('File size must be less than 10MB')
       return
+    }
+
+    // Suggest images for better processing reliability
+    if (file.type.includes('pdf')) {
+      toast('💡 Tip: For best results, upload as JPG/PNG image', {
+        icon: '🔄',
+        duration: 4000,
+        style: {
+          background: '#1f2937',
+          color: '#f9fafb',
+          border: '1px solid #374151'
+        }
+      })
     }
 
     setState(prev => ({
@@ -485,7 +498,9 @@ export default function DocumentsPage() {
               <p className="text-gray-300 font-medium">
                 {dragOver === type ? 'Drop your file here' : 'Drag & drop or click to upload'}
               </p>
-              <p className="text-gray-500 text-sm">PNG, JPG, PDF (max 10MB)</p>
+              <p className="text-gray-500 text-sm">
+                <span className="text-blue-400">JPG, PNG</span> (recommended) or PDF (max 10MB)
+              </p>
             </div>
           </div>
         )}
@@ -570,16 +585,26 @@ export default function DocumentsPage() {
         {/* Instructions */}
         <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-6 mb-8">
           <h3 className="text-white font-semibold mb-4">📋 Upload Guidelines</h3>
+          
+          {/* Recommended Format Notice */}
+          <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-3 mb-4">
+            <p className="text-blue-400 text-sm font-medium">
+              🏆 Recommended: Upload as JPG/PNG images for fastest and most reliable processing
+            </p>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
             <div className="space-y-2">
               <p>✅ Clear, well-lit photos</p>
               <p>✅ All four corners visible</p>
               <p>✅ No blur or shadows</p>
+              <p>✅ JPG/PNG format preferred</p>
             </div>
             <div className="space-y-2">
               <p>✅ Text clearly readable</p>
               <p>✅ Original documents only</p>
               <p>✅ File size under 10MB</p>
+              <p>✅ PDF supported (may need conversion)</p>
             </div>
           </div>
         </div>
