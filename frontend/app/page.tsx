@@ -23,7 +23,7 @@ import toast from 'react-hot-toast'
 import { sendOTP, verifyOTP } from './lib/api'
 
 // Umoney Logo Component
-const UmoneyLogo = ({ className = "h-8" }: { className?: string }) => (
+const UmoneyLogo = ({ className = "h-8" }) => (
   <div className="flex items-center space-x-2 group cursor-pointer transition-transform duration-200 hover:scale-105">
     <div className="relative">
       <svg 
@@ -67,18 +67,18 @@ export default function LandingPage() {
   const [showForm, setShowForm] = useState(false)
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
-  const [step, setStep] = useState<'phone' | 'otp'>('phone')
+  const [step, setStep] = useState('phone')
   const [loading, setLoading] = useState(false)
   const [fetchingOtp, setFetchingOtp] = useState(false)
   const [otpReceived, setOtpReceived] = useState('')
   
   // FAQ state
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [openFaq, setOpenFaq] = useState(null)
   
   const router = useRouter()
 
   // Calculate EMI based on loan amount, interest rate, and tenure
-  const calculateEMI = (principal: number, rate: number, tenure: number) => {
+  const calculateEMI = (principal, rate, tenure) => {
     const monthlyRate = rate / (12 * 100)
     const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / 
                 (Math.pow(1 + monthlyRate, tenure) - 1)
@@ -153,7 +153,7 @@ export default function LandingPage() {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       if (step === 'phone') {
         handleSendOTP()
@@ -167,7 +167,7 @@ export default function LandingPage() {
     setShowForm(true)
   }
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount) => {
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`
     if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`
     return `₹${(amount / 1000).toFixed(0)}k`
