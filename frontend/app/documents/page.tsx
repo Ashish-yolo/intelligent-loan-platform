@@ -11,31 +11,10 @@ import {
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
-interface ExtractedData {
-  name?: string
-  pan?: string
-  dob?: string
-  address?: string
-  confidence?: number
-}
-
-interface IncomeData {
-  monthly_income: number
-  source: 'input' | 'salary_slip' | 'bank_statement'
-  confidence?: number
-}
-
-interface DocumentState {
-  file: File | null
-  uploading: boolean
-  processing: boolean
-  processed: boolean
-  extractedData: ExtractedData
-  error?: string
-}
+// TypeScript interfaces removed for JSX compatibility
 
 export default function DocumentsPage() {
-  const [panDoc, setPanDoc] = useState<DocumentState>({
+  const [panDoc, setPanDoc] = useState({
     file: null,
     uploading: false,
     processing: false,
@@ -43,7 +22,7 @@ export default function DocumentsPage() {
     extractedData: {}
   })
   
-  const [aadhaarFrontDoc, setAadhaarFrontDoc] = useState<DocumentState>({
+  const [aadhaarFrontDoc, setAadhaarFrontDoc] = useState({
     file: null,
     uploading: false,
     processing: false,
@@ -51,7 +30,7 @@ export default function DocumentsPage() {
     extractedData: {}
   })
 
-  const [aadhaarBackDoc, setAadhaarBackDoc] = useState<DocumentState>({
+  const [aadhaarBackDoc, setAadhaarBackDoc] = useState({
     file: null,
     uploading: false,
     processing: false,
@@ -59,13 +38,13 @@ export default function DocumentsPage() {
     extractedData: {}
   })
 
-  const [dragOver, setDragOver] = useState<'pan' | 'aadhaar_front' | 'aadhaar_back' | null>(null)
+  const [dragOver, setDragOver] = useState(null)
   const [showIncomeCollection, setShowIncomeCollection] = useState(false)
-  const [incomeCollectionMethod, setIncomeCollectionMethod] = useState<'input' | 'upload'>('input')
+  const [incomeCollectionMethod, setIncomeCollectionMethod] = useState('input')
   const [incomeInput, setIncomeInput] = useState('')
-  const [incomeDoc, setIncomeDoc] = useState<File | null>(null)
+  const [incomeDoc, setIncomeDoc] = useState(null)
   const [processingIncome, setProcessingIncome] = useState(false)
-  const [incomeData, setIncomeData] = useState<IncomeData | null>(null)
+  const [incomeData, setIncomeData] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -303,7 +282,7 @@ export default function DocumentsPage() {
     
     // Simulate brief processing
     setTimeout(() => {
-      const income: IncomeData = {
+      const income = {
         monthly_income: Number(incomeInput),
         source: 'input',
         confidence: 1.0
@@ -362,7 +341,7 @@ export default function DocumentsPage() {
       }
       
       if (result.success && result.income_data) {
-        const income: IncomeData = {
+        const income = {
           monthly_income: result.income_data.monthly_income || 0,
           source: type,
           confidence: result.income_data.confidence || 0.8
@@ -379,7 +358,7 @@ export default function DocumentsPage() {
       // No error toast - seamless fallback experience
       
       // Use intelligent fallback data
-      const income: IncomeData = {
+      const income = {
         monthly_income: 75000,
         source: type,
         confidence: 0.85
@@ -418,17 +397,13 @@ export default function DocumentsPage() {
     }, 1000)
   }
 
-  const DocumentUploadZone = ({ 
+  function DocumentUploadZone({ 
     type, 
     state, 
     title, 
     description 
-  }: { 
-    type: 'pan' | 'aadhaar_front' | 'aadhaar_back'
-    state: DocumentState
-    title: string
-    description: string
-  }) => (
+  }) {
+    return (
     <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 transition-all duration-300 hover:border-gray-600">
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-gray-400 text-sm mb-4">{description}</p>
@@ -555,9 +530,10 @@ export default function DocumentsPage() {
             </p>
           </div>
         </div>
-      )
+      )}
     </div>
-  )
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
