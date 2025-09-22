@@ -362,27 +362,27 @@ async def extract_documents(
                                 "processing_note": f"Claude API error: {str(claude_error)[:100]}",
                                 "error_type": "claude_api_error"
                             }
-            except Exception as e:
-                logger.error(f"PAN processing error: {e}")
-                # Use transparent error messaging instead of dummy data
-                extracted_data["pan"] = {
-                    "name": "PROCESSING ERROR",
-                    "pan": "XXXXX0000X", 
-                    "dob": "01/01/1990",
-                    "confidence": 0.0,
-                    "document_type": "PAN",
-                    "is_real_api": False,
-                    "processing_note": f"Processing failed: {str(e)[:100]}",
-                    "error_type": "processing_error",
-                    "fraud_analysis": {
-                        "risk_level": "low",
-                        "confidence_score": 0.95,
-                        "fraud_indicators": [],
-                        "authenticity_score": 0.95,
-                        "recommendation": "proceed",
-                        "details": "Demo document verification successful"
-                    }
+        except Exception as e:
+            logger.error(f"PAN processing error: {e}")
+            # Use transparent error messaging instead of dummy data
+            extracted_data["pan"] = {
+                "name": "PROCESSING ERROR",
+                "pan": "XXXXX0000X", 
+                "dob": "01/01/1990",
+                "confidence": 0.0,
+                "document_type": "PAN",
+                "is_real_api": False,
+                "processing_note": f"Processing failed: {str(e)[:100]}",
+                "error_type": "processing_error",
+                "fraud_analysis": {
+                    "risk_level": "low",
+                    "confidence_score": 0.95,
+                    "fraud_indicators": [],
+                    "authenticity_score": 0.95,
+                    "recommendation": "proceed",
+                    "details": "Demo document verification successful"
                 }
+            }
         
         # Process Aadhaar card(s) - support both single file and front/back
         aadhaar_files_to_process = []
