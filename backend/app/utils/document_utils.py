@@ -7,7 +7,7 @@ try:
     PDF_CONVERSION_AVAILABLE = True
 except ImportError:
     PDF_CONVERSION_AVAILABLE = False
-    logger.warning("pdf2image not available - PDF conversion disabled")
+    # PDF conversion not available - will provide clear error messages
 
 try:
     from PIL import Image

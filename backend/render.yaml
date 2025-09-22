@@ -3,11 +3,9 @@ services:
     name: intelligent-loan-platform-api
     runtime: python
     plan: free
-    buildCommand: |
-      apt-get update && apt-get install -y poppler-utils libgl1-mesa-glx
-      which pdftoppm || echo "WARNING: pdftoppm not found"
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -21,4 +19,3 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-    healthCheckPath: /health
