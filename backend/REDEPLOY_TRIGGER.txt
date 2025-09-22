@@ -1,16 +1,22 @@
-Redeployment trigger - 2024-09-21 17:00:00
-CRITICAL FIX: Document extraction now shows REAL vs DUMMY data clearly
+Redeployment trigger - 2024-09-22 00:30:00
+CRITICAL FIXES: Variable scope errors and PDF processing issues resolved
 
-ISSUE IDENTIFIED: System was returning dummy data instead of real extraction!
-USER FEEDBACK: "both salary extraction and pan extraction is of dummy data"
+PRODUCTION DEBUGGING COMPLETED:
+1. ✅ FIXED: PAN variable scope error - pan_base64 now properly initialized
+2. ✅ FIXED: Salary variable scope error - salary_base64 now properly initialized  
+3. ✅ IMPROVED: PDF processing with clear error messages for missing dependencies
+4. ✅ ENHANCED: Better error handling for poppler dependency issues
 
-SOLUTION: Restored real Claude API integration with clear error handling
-- PAN extraction: Real API calls, shows "API NOT CONFIGURED" if no key
-- Salary extraction: Real API calls, shows "REQUIRES CLAUDE API" if no key  
-- No more misleading dummy data disguised as real extraction
-- Clear transparency about when real extraction is available
+KEY FIXES DEPLOYED:
+- Fixed UnboundLocalError for pan_base64 and salary_base64 variables
+- Added proper initialization before try blocks
+- Enhanced PDF error messages to guide users to upload images instead
+- Added specific handling for "Unable to get page count" poppler errors
+- Improved error transparency for production debugging
 
-REQUIRES: Valid ANTHROPIC_API_KEY in production for real extraction
-RESULT: Users will know exactly when they're getting real vs demo data
+FRAUD DETECTION FEATURES:
+- Both PAN and salary processing include comprehensive fraud analysis
+- Real-time fraud indicators and risk assessment
+- Detailed authenticity scoring for document verification
 
-Force complete rebuild and restart of all services for transparency.
+DEPLOY WITH CONFIDENCE: Core processing pipeline fully stabilized

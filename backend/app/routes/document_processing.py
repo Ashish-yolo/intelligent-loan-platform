@@ -222,6 +222,8 @@ async def extract_documents(
                 else:
                     # Process file (convert PDF to image if needed)
                     logger.info("PROCESSING: Starting PAN file processing (PDF to image conversion if needed)...")
+                    pan_base64 = None
+                    media_type = None
                     try:
                         pan_base64, media_type = process_document_file(pan_content, pan_file.content_type)
                         pan_base64 = optimize_image_for_api(pan_base64)
@@ -238,7 +240,8 @@ async def extract_documents(
                             "processing_note": f"File processing error: {str(e)[:100]}",
                             "error_type": "file_processing_failed"
                         }
-                    else:
+                    
+                    if pan_base64 and media_type:
                         # File processed successfully, attempt Claude extraction
                         pan_extraction_prompt = """
             You are a fraud detection and document processing AI for a legitimate financial institution. Analyze this PAN card for fraud indicators and extract data:
@@ -682,6 +685,8 @@ async def extract_salary_slip(
             }
         
         # Process file (convert PDF to image if needed)
+        salary_base64 = None
+        media_type = None
         try:
             salary_base64, media_type = process_document_file(salary_content, salary_file.content_type)
             salary_base64 = optimize_image_for_api(salary_base64)
@@ -701,6 +706,23 @@ async def extract_salary_slip(
                     "confidence": 0.0,
                     "document_type": "Salary Slip",
                     "processing_note": f"File processing error: {str(e)[:100]}",
+                    "error_type": "file_processing_failed"
+                }
+            }
+        
+        if not salary_base64 or not media_type:
+            return {
+                "success": True,
+                "income_data": {
+                    "employee_name": "FILE PROCESSING FAILED",
+                    "company_name": "CANNOT PROCESS PDF/IMAGE",
+                    "salary_month": "00/0000",
+                    "gross_salary": 0,
+                    "net_salary": 0,
+                    "monthly_income": 0,
+                    "confidence": 0.0,
+                    "document_type": "Salary Slip",
+                    "processing_note": "File processing returned empty result",
                     "error_type": "file_processing_failed"
                 }
             }

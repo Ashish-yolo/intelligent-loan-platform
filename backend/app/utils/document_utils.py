@@ -33,7 +33,7 @@ def process_document_file(file_content: bytes, content_type: str) -> Tuple[str, 
         # Handle PDF files
         if 'pdf' in content_type.lower():
             if not PDF_CONVERSION_AVAILABLE:
-                raise Exception("PDF conversion not available - pdf2image library not installed")
+                raise Exception("PDF processing unavailable - pdf2image library not installed. Please convert your PDF to JPG/PNG image and upload instead.")
             
             logger.info("Converting PDF to image")
             
@@ -42,7 +42,7 @@ def process_document_file(file_content: bytes, content_type: str) -> Tuple[str, 
                 images = convert_from_bytes(file_content, first_page=1, last_page=1, dpi=300)
                 
                 if not images:
-                    raise Exception("Could not convert PDF to image")
+                    raise Exception("PDF page conversion failed - please convert to JPG/PNG image and upload instead.")
                 
                 # Convert PIL image to base64
                 img = images[0]
@@ -62,11 +62,16 @@ def process_document_file(file_content: bytes, content_type: str) -> Tuple[str, 
                 
             except Exception as e:
                 logger.error(f"PDF conversion failed: {e}")
-                # More specific error messages
-                if "poppler" in str(e).lower() or "pdftoppm" in str(e).lower():
-                    raise Exception("PDF processing unavailable - dependencies not installed. Please upload as JPG/PNG image instead.")
+                # More specific error messages for production debugging
+                error_str = str(e).lower()
+                if "poppler" in error_str or "pdftoppm" in error_str or "unable to get page count" in error_str:
+                    raise Exception("PDF processing dependencies missing - poppler not installed. Please convert PDF to JPG/PNG image and upload instead.")
+                elif "permission" in error_str or "access" in error_str:
+                    raise Exception("PDF file access denied - file may be password protected or corrupted. Please save as JPG/PNG image and upload instead.")
+                elif "corrupt" in error_str or "invalid" in error_str:
+                    raise Exception("PDF file appears corrupted or invalid. Please save as JPG/PNG image and upload instead.")
                 else:
-                    raise Exception(f"PDF conversion failed: {str(e)}. Please upload as image (JPG/PNG) instead.")
+                    raise Exception(f"PDF processing failed: {str(e)[:100]}. Please convert to JPG/PNG image and upload instead.")
             
         # Handle image files
         elif any(img_type in content_type.lower() for img_type in ['image', 'jpeg', 'jpg', 'png', 'webp']):
