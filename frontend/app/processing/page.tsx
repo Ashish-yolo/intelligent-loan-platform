@@ -250,7 +250,13 @@ export default function ProcessingPage() {
               setShowFinalAnimation(true)
               setTimeout(() => {
                 if (isProcessing) {
-                  router.push('/loan-terms')
+                  try {
+                    router.push('/loan-terms')
+                  } catch (error) {
+                    console.error('Navigation error:', error)
+                    // Fallback navigation
+                    window.location.href = '/loan-terms'
+                  }
                 }
               }, 2000)
             }
@@ -261,7 +267,13 @@ export default function ProcessingPage() {
         // Handle error gracefully
         setTimeout(() => {
           if (isProcessing) {
-            router.push('/loan-terms')
+            try {
+              router.push('/loan-terms')
+            } catch (navError) {
+              console.error('Navigation error:', navError)
+              // Fallback navigation
+              window.location.href = '/loan-terms'
+            }
           }
         }, 1000)
       }
