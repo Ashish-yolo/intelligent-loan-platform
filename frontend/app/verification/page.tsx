@@ -260,7 +260,7 @@ export default function VerificationPage() {
 
         {dataLoaded && (
           <div className="mb-6">
-            <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+            <div className="bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4">
               <div className="flex items-center space-x-3 mb-3">
                 <CheckCircleIcon className="h-6 w-6 text-green-400 flex-shrink-0" />
                 <div>
@@ -290,7 +290,7 @@ export default function VerificationPage() {
                     
                     if (data.aadhaar && data.aadhaar.confidence > 0) {
                       elements.push(
-                        <div key="aadhaar" className="bg-purple-600/20 rounded-lg p-2 text-center">
+                        <div key="aadhaar" className="bg-purple-600 bg-opacity-20 rounded-lg p-2 text-center">
                           <div className="text-purple-400 font-bold text-lg">
                             {Math.round(data.aadhaar.confidence * 100)}%
                           </div>
@@ -493,7 +493,7 @@ export default function VerificationPage() {
                 <h2 className="text-xl font-semibold text-white">Income Verification</h2>
               </div>
 
-              <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 mb-4">
+              <div className="bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4 mb-4">
                 <div className="flex items-center space-x-3 mb-2">
                   <CheckCircleIcon className="h-5 w-5 text-green-400" />
                   <span className="text-green-400 font-medium">Income Successfully Verified</span>
@@ -504,21 +504,21 @@ export default function VerificationPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-green-400">
                     ₹{incomeData.monthly_income?.toLocaleString() || '0'}
                   </div>
                   <div className="text-gray-400 text-sm">Monthly Income</div>
                 </div>
                 
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4">
                   <div className="text-lg font-semibold text-blue-400 capitalize">
                     {incomeData.source?.replace('_', ' ') || 'Not specified'}
                   </div>
                   <div className="text-gray-400 text-sm">Income Source</div>
                 </div>
                 
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4">
                   <div className="text-lg font-semibold text-purple-400">
                     {Math.round((incomeData.confidence || 0) * 100)}%
                   </div>
@@ -550,7 +550,7 @@ export default function VerificationPage() {
                                        panFraud.risk_level === 'medium' ? 'yellow' : 'red';
                       
                       return (
-                        <div className="bg-gray-800/50 rounded-lg p-4 border-l-4 border-blue-400">
+                        <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4 border-l-4 border-blue-400">
                           <div className="flex items-center justify-between mb-4">
                             <h3 className="text-white font-medium flex items-center">
                               <IdentificationIcon className="h-5 w-5 mr-2 text-blue-400" />
@@ -625,7 +625,7 @@ export default function VerificationPage() {
                             )}
                             
                             {panFraud.details && (
-                              <p className="text-gray-300 text-xs mt-2 p-2 bg-gray-700/50 rounded">
+                              <p className="text-gray-300 text-xs mt-2 p-2 bg-gray-700 bg-opacity-50 rounded">
                                 {panFraud.details}
                               </p>
                             )}
@@ -639,7 +639,7 @@ export default function VerificationPage() {
 
                 {/* Income Document Analysis */}
                 {incomeData && incomeData.fraud_analysis && (
-                  <div className="bg-gray-800/50 rounded-lg p-4 border-l-4 border-green-400">
+                  <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4 border-l-4 border-green-400">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-medium flex items-center">
                         <BanknotesIcon className="h-5 w-5 mr-2 text-green-400" />
@@ -706,7 +706,7 @@ export default function VerificationPage() {
                       )}
                       
                       {incomeData.fraud_analysis.details && (
-                        <p className="text-gray-300 text-xs mt-2 p-2 bg-gray-700/50 rounded">
+                        <p className="text-gray-300 text-xs mt-2 p-2 bg-gray-700 bg-opacity-50 rounded">
                           {incomeData.fraud_analysis.details}
                         </p>
                       )}
@@ -716,7 +716,7 @@ export default function VerificationPage() {
               </div>
 
               {/* Overall Security Status */}
-              <div className="mt-6 p-4 bg-green-600/10 border border-green-500/30 rounded-lg">
+              <div className="mt-6 p-4 bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <CheckCircleIcon className="h-6 w-6 text-green-400" />
                   <div>
@@ -738,7 +738,7 @@ export default function VerificationPage() {
               <h2 className="text-xl font-semibold text-white">Credit Bureau Authorization</h2>
             </div>
 
-            <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4 mb-4">
+            <div className="bg-yellow-600 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-lg p-4 mb-4">
               <h3 className="text-yellow-400 font-medium mb-2">Why do we need this?</h3>
               <p className="text-yellow-300 text-sm">
                 We need to fetch your credit report from authorized credit bureaus (CIBIL, Experian, Equifax) 

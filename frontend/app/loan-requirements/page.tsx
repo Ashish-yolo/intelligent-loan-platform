@@ -142,8 +142,8 @@ export default function LoanRequirementsPage() {
                 onClick={() => setTenure(option.value)}
                 className={`relative p-4 rounded-lg border-2 transition-all duration-200 ${
                   tenure === option.value
-                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
+                    ? 'border-blue-500 bg-blue-500 bg-opacity-10 text-blue-400'
+                    : 'border-gray-600 bg-gray-800 bg-opacity-50 text-gray-300 hover:border-gray-500'
                 }`}
               >
                 <div className="text-center">

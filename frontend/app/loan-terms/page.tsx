@@ -164,7 +164,7 @@ export default function LoanTermsPage() {
         </div>
 
         {/* Loan Summary */}
-        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-xl p-6 mb-8">
+        <div className="bg-gradient-to-r from-green-600 from-opacity-20 to-blue-600 to-opacity-20 border border-green-500 border-opacity-30 rounded-xl p-6 mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <CheckCircleIcon className="h-6 w-6 text-green-400" />
             <h2 className="text-lg font-semibold text-white">Your Loan Request</h2>
@@ -195,7 +195,7 @@ export default function LoanTermsPage() {
               key={offer.id}
               className={`relative bg-gray-900 bg-opacity-50 backdrop-blur-sm border rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
                 selectedOffer === offer.id
-                  ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/25'
+                  ? 'border-blue-500 bg-blue-500 bg-opacity-10 shadow-lg shadow-blue-500 shadow-opacity-25'
                   : 'border-gray-700 hover:border-gray-600'
               }`}
               onClick={() => setSelectedOffer(offer.id)}

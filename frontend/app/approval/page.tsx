@@ -106,9 +106,9 @@ export default function ApprovalPage() {
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Animated background gradients */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500 bg-opacity-20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 bg-opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500 bg-opacity-10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
 
         {/* Floating sparkles */}
         {[...Array(50)].map((_, i) => (
@@ -167,7 +167,7 @@ export default function ApprovalPage() {
         </div>
 
         {/* Loan Details Card */}
-        <div className={`bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-2xl p-8 mb-8 transform transition-all duration-1000 delay-1000 ${animationStep >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+        <div className={`bg-gradient-to-r from-green-600 from-opacity-20 to-blue-600 to-opacity-20 border border-green-500 border-opacity-30 rounded-2xl p-8 mb-8 transform transition-all duration-1000 delay-1000 ${animationStep >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
           <div className="text-center mb-6">
             <h3 className="text-2xl font-bold text-white mb-2">Your Approved Loan Details</h3>
             <div className="flex items-center justify-center space-x-2 text-green-400">
@@ -289,7 +289,7 @@ export default function ApprovalPage() {
 
         {/* Support Section */}
         <div className="text-center">
-          <div className="bg-gray-900/30 border border-gray-700/50 rounded-lg p-6">
+          <div className="bg-gray-900 bg-opacity-30 border border-gray-700 border-opacity-50 rounded-lg p-6">
             <h3 className="text-white font-medium mb-2">Need Help?</h3>
             <p className="text-gray-400 text-sm mb-4">
               Our customer support team is available 24/7 to assist you

@@ -437,9 +437,9 @@ export default function DocumentsPage() {
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
           dragOver === type
-            ? 'border-blue-500 bg-blue-500/10 scale-105'
+            ? 'border-blue-500 bg-blue-500 bg-opacity-10 scale-105'
             : state.processed
-            ? 'border-green-500 bg-green-500/10'
+            ? 'border-green-500 bg-green-500 bg-opacity-10'
             : 'border-gray-600 bg-gray-800 bg-opacity-50 hover:border-gray-500 hover:bg-gray-800 hover:bg-opacity-70'
         }`}
         onDragOver={(e) => {
@@ -612,7 +612,7 @@ export default function DocumentsPage() {
           <h3 className="text-white font-semibold mb-4">📋 Upload Guidelines</h3>
           
           {/* Recommended Format Notice */}
-          <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-3 mb-4">
+          <div className="bg-blue-600 bg-opacity-10 border border-blue-500 border-opacity-30 rounded-lg p-3 mb-4">
             <p className="text-blue-400 text-sm font-medium">
               🏆 Recommended: Upload as JPG/PNG images for fastest and most reliable processing
             </p>
@@ -636,13 +636,13 @@ export default function DocumentsPage() {
 
         {/* Smart Income Collection */}
         {showIncomeCollection && (
-          <div className="bg-gradient-to-r from-blue-600/20 to-green-600/20 border border-blue-500/30 rounded-xl p-6 mb-8 animate-fade-in">
+          <div className="bg-gradient-to-r from-blue-600 from-opacity-20 to-green-600 to-opacity-20 border border-blue-500 border-opacity-30 rounded-xl p-6 mb-8 animate-fade-in">
             <h3 className="text-white font-semibold mb-4">💰 Income Verification</h3>
             
             {incomeCollectionMethod === 'input' ? (
               // High bureau score - income input
               <div className="space-y-4">
-                <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 mb-4">
+                <div className="bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4 mb-4">
                   <p className="text-green-400 text-sm">
                     🎉 Great credit profile! Simply enter your monthly income below.
                   </p>
@@ -674,7 +674,7 @@ export default function DocumentsPage() {
             ) : (
               // Low bureau score - document upload
               <div className="space-y-4">
-                <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4 mb-4">
+                <div className="bg-yellow-600 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-lg p-4 mb-4">
                   <p className="text-yellow-400 text-sm">
                     📄 Please upload salary slip or bank statement for income verification.
                   </p>
@@ -753,7 +753,7 @@ export default function DocumentsPage() {
             
             {/* Income Verification Result */}
             {incomeData && (
-              <div className="mt-4 bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+              <div className="mt-4 bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4">
                 <div className="flex items-center space-x-3 mb-2">
                   <CheckCircleIcon className="h-5 w-5 text-green-400" />
                   <span className="text-green-400 font-medium">Income Verified</span>

@@ -317,7 +317,7 @@ export default function ProcessingPage() {
         {[...Array(30)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-blue-400/60 rounded-full animate-ping"
+            className="absolute w-1 h-1 bg-blue-400 bg-opacity-60 rounded-full animate-ping"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -328,8 +328,8 @@ export default function ProcessingPage() {
         ))}
         
         {/* Background glow */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600 bg-opacity-10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-600 bg-opacity-10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       <div className="max-w-2xl mx-auto relative z-10">
@@ -438,7 +438,7 @@ export default function ProcessingPage() {
         </div>
 
         {/* Interesting Facts */}
-        <div className="bg-gray-900/30 border border-gray-700/50 rounded-xl p-6 mb-8">
+        <div className="bg-gray-900 bg-opacity-30 border border-gray-700 border-opacity-50 rounded-xl p-6 mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <LightBulbIcon className="h-6 w-6 text-yellow-400" />
             <h3 className="text-lg font-semibold text-white">Did you know?</h3>
@@ -450,13 +450,13 @@ export default function ProcessingPage() {
 
         {/* Security Indicators */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-900/30 border border-gray-700/50 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 bg-opacity-30 border border-gray-700 border-opacity-50 rounded-lg p-4 text-center">
             <div className="w-8 h-8 bg-green-600 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircleIcon className="h-5 w-5 text-green-400" />
             </div>
             <p className="text-gray-300 text-sm">256-bit Encryption</p>
           </div>
-          <div className="bg-gray-900/30 border border-gray-700/50 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 bg-opacity-30 border border-gray-700 border-opacity-50 rounded-lg p-4 text-center">
             <div className="w-8 h-8 bg-blue-600 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircleIcon className="h-5 w-5 text-blue-400" />
             </div>
