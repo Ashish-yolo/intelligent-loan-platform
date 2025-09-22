@@ -273,6 +273,22 @@ export default function ApplicationPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Employment Type *
+                    </label>
+                    <select
+                      {...register('employment_type', { required: 'Employment type is required' })}
+                      className="input-field"
+                    >
+                      {EMPLOYMENT_TYPES.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Monthly Income *
                     </label>
                     <div className="relative">
@@ -375,10 +391,6 @@ export default function ApplicationPage() {
                     <div>
                       <span className="text-sm text-gray-600">Loan Amount:</span>
                       <p className="font-semibold">{formatCurrency(getValues('requested_amount'))}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">Purpose:</span>
-                      <p className="font-semibold">{LOAN_PURPOSES.find(p => p.value === getValues('purpose'))?.label}</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-600">Tenure:</span>

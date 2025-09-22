@@ -59,7 +59,6 @@ const UmoneyLogo = ({ className = "h-8" }: { className?: string }) => (
 export default function LandingPage() {
   // Calculator state
   const [loanAmount, setLoanAmount] = useState(200000)
-  const [employmentType, setEmploymentType] = useState('salaried')
   const [emi, setEmi] = useState(0)
   const [interestRate, setInterestRate] = useState(12.99)
   const [tenure, setTenure] = useState(24)
@@ -294,38 +293,6 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Employment Type Only */}
-                <div className="max-w-md mx-auto">
-                  <div className="text-center">
-                    <label className="block text-lg font-semibold text-white mb-4">
-                      Employment Type
-                    </label>
-                    <div className="flex justify-center space-x-8">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="employment"
-                          value="salaried"
-                          checked={employmentType === 'salaried'}
-                          onChange={(e) => setEmploymentType(e.target.value)}
-                          className="mr-3 text-blue-600 scale-125"
-                        />
-                        <span className="text-white text-lg">Salaried</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="employment"
-                          value="self-employed"
-                          checked={employmentType === 'self-employed'}
-                          onChange={(e) => setEmploymentType(e.target.value)}
-                          className="mr-3 text-blue-600 scale-125"
-                        />
-                        <span className="text-white text-lg">Self-employed</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
 
                 {/* EMI Display */}
                 <div className="bg-gray-800 rounded-xl p-6 border border-gray-600">

@@ -28,7 +28,6 @@ const LOAN_PURPOSES = [
 export default function LoanRequirementsPage() {
   const [amount, setAmount] = useState(100000)
   const [tenure, setTenure] = useState(12)
-  const [purpose, setPurpose] = useState('personal')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -62,7 +61,6 @@ export default function LoanRequirementsPage() {
     localStorage.setItem('loanRequirements', JSON.stringify({
       amount,
       tenure,
-      purpose,
       estimatedEMI: calculateEMI(amount, tenure)
     }))
 
@@ -161,31 +159,6 @@ export default function LoanRequirementsPage() {
           </div>
         </div>
 
-        {/* Purpose Selection */}
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
-          <label className="block text-lg font-medium text-white mb-4">
-            What's this loan for?
-          </label>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {LOAN_PURPOSES.map((purposeOption) => (
-              <button
-                key={purposeOption.value}
-                onClick={() => setPurpose(purposeOption.value)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                  purpose === purposeOption.value
-                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-xl">{purposeOption.emoji}</span>
-                  <span className="font-medium">{purposeOption.label}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* EMI Calculation */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-6 mb-8">
