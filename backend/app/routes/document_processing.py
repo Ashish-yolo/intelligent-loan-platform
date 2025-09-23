@@ -572,11 +572,17 @@ async def extract_documents(
         # Combine Aadhaar data from multiple sides if available
         if aadhaar_data:
             extracted_data["aadhaar"] = combine_aadhaar_data(aadhaar_data)
-            # Also preserve separate front and back data for frontend access
+            # Always preserve separate front and back data for frontend access
             if "front" in aadhaar_data:
                 extracted_data["aadhaar_front"] = aadhaar_data["front"]
             if "back" in aadhaar_data:
                 extracted_data["aadhaar_back"] = aadhaar_data["back"]
+            
+            # Debug logging to see what data is being stored
+            logger.info(f"Aadhaar data structure: combined={bool(extracted_data.get('aadhaar'))}, front={bool(extracted_data.get('aadhaar_front'))}, back={bool(extracted_data.get('aadhaar_back'))}")
+            if "back" in aadhaar_data:
+                back_address = aadhaar_data["back"].get("address")
+                logger.info(f"Aadhaar back address being stored: {back_address[:50] if back_address else 'None'}...")
         
         # Calculate mock bureau score based on extracted data quality
         bureau_score = calculate_mock_bureau_score(extracted_data)
@@ -1284,17 +1290,24 @@ def combine_aadhaar_data(aadhaar_data: Dict[str, Dict[str, Any]]) -> Dict[str, A
                 all_fraud_indicators.extend(indicators)
             
             # Collect specific fields based on what's available
-            if data.get("name") and data["name"] != "null":
+            if data.get("name") and data["name"] != "null" and data["name"] != None:
                 combined["name"] = data["name"]
-            if data.get("dob") and data["dob"] != "null":
+            if data.get("dob") and data["dob"] != "null" and data["dob"] != None:
                 combined["dob"] = data["dob"]
-            if data.get("gender") and data["gender"] != "null":
+            if data.get("gender") and data["gender"] != "null" and data["gender"] != None:
                 combined["gender"] = data["gender"]
-            if data.get("address") and data["address"] != "null":
-                combined["address"] = data["address"]
-            if data.get("father_name") and data["father_name"] != "null":
+            
+            # For address, prioritize back side data (where address is typically found)
+            address_value = data.get("address")
+            if address_value and address_value != "null" and address_value != None and address_value.strip():
+                # If this is back side data, or if we don't have an address yet, use this one
+                if side == "back" or not combined.get("address"):
+                    combined["address"] = address_value
+                    logger.info(f"Set address from {side} side: {address_value[:50]}...")
+            
+            if data.get("father_name") and data["father_name"] != "null" and data["father_name"] != None:
                 combined["father_name"] = data["father_name"]
-            if data.get("aadhaar_last4") and data["aadhaar_last4"] != "null":
+            if data.get("aadhaar_last4") and data["aadhaar_last4"] != "null" and data["aadhaar_last4"] != None:
                 combined["aadhaar_last4"] = data["aadhaar_last4"]
     
     # Set defaults for missing fields

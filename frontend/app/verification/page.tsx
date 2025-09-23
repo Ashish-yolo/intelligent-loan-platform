@@ -157,14 +157,34 @@ export default function VerificationPage() {
         const data = JSON.parse(extractedData)
         // Try multiple possible address field names from Aadhaar data
         // Prioritize Aadhaar back data for address (as address is typically on the back)
-        const aadhaarAddress = data.aadhaar_back?.address || 
-                              data.aadhaar?.address || 
-                              data.aadhaar_back?.complete_address || 
-                              data.aadhaar?.complete_address || 
-                              data.aadhaar_back?.full_address || 
-                              data.aadhaar?.full_address || 
-                              data.aadhaar_back?.addr || 
-                              data.aadhaar?.addr || ''
+        let aadhaarAddress = ''
+        
+        // Check all possible sources and log what we find
+        const addressSources = [
+          { source: 'aadhaar_back.address', value: data.aadhaar_back?.address },
+          { source: 'aadhaar.address', value: data.aadhaar?.address },
+          { source: 'aadhaar_back.complete_address', value: data.aadhaar_back?.complete_address },
+          { source: 'aadhaar.complete_address', value: data.aadhaar?.complete_address },
+          { source: 'aadhaar_back.full_address', value: data.aadhaar_back?.full_address },
+          { source: 'aadhaar.full_address', value: data.aadhaar?.full_address },
+          { source: 'aadhaar_back.addr', value: data.aadhaar_back?.addr },
+          { source: 'aadhaar.addr', value: data.aadhaar?.addr }
+        ]
+        
+        console.log('🔍 Checking all address sources:', addressSources)
+        
+        // Find the first non-empty address
+        for (const { source, value } of addressSources) {
+          if (value && typeof value === 'string' && value.trim() && value !== 'null') {
+            aadhaarAddress = value
+            console.log(`✅ Using address from ${source}: ${value.substring(0, 50)}...`)
+            break
+          }
+        }
+        
+        if (!aadhaarAddress) {
+          console.log('❌ No valid address found in any source')
+        }
         
         const parsedAddress = parseAadhaarAddress(aadhaarAddress)
         setFormData(prev => ({
@@ -176,6 +196,7 @@ export default function VerificationPage() {
           address: parsedAddress
         }))
         
+        console.log('FULL EXTRACTED DATA STRUCTURE:', data)
         console.log('Extracted Aadhaar data:', {
           rawAddress: aadhaarAddress,
           parsedAddress: parsedAddress,
@@ -183,7 +204,12 @@ export default function VerificationPage() {
           fullAadhaarData: data.aadhaar,
           fullAadhaarBackData: data.aadhaar_back,
           hasAadhaarBack: !!data.aadhaar_back,
-          addressSource: data.aadhaar_back?.address ? 'aadhaar_back' : 'aadhaar'
+          hasAadhaarFront: !!data.aadhaar_front,
+          combinedAadhaarAddress: data.aadhaar?.address,
+          backAadhaarAddress: data.aadhaar_back?.address,
+          frontAadhaarAddress: data.aadhaar_front?.address,
+          addressSource: data.aadhaar_back?.address ? 'aadhaar_back' : 
+                        data.aadhaar?.address ? 'aadhaar_combined' : 'none'
         })
         
         // Additional logging to debug address auto-fill
