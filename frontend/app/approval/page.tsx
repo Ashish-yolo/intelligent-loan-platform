@@ -18,7 +18,7 @@ const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
 export default function ApprovalPage() {
   const [showConfetti, setShowConfetti] = useState(true)
-  const [loanData, setLoanData] = useState<any>(null)
+  const [loanData, setLoanData] = useState(null)
   const [animationStep, setAnimationStep] = useState(0)
   const router = useRouter()
 

@@ -1116,6 +1116,7 @@ async def process_protected_bank_statement(
     """Process password-protected bank statement with advanced analysis"""
     try:
         logger.info(f"Processing password-protected bank statement: {bank_file.filename}")
+        logger.info(f"Form data received: user_id={user_id}, pan_name={pan_name}, pan_dob={pan_dob}, salary_slip_net={salary_slip_net}")
         
         # Validate file
         if not bank_file.content_type or 'pdf' not in bank_file.content_type.lower():

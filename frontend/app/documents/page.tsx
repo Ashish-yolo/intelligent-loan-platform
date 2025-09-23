@@ -137,11 +137,15 @@ export default function DocumentsPage() {
             confidence: result.extracted_data.pan.confidence || 0.95
           }
         } else if ((type === 'aadhaar_front' || type === 'aadhaar_back') && result.extracted_data.aadhaar) {
+          // Return the complete response structure for Aadhaar processing
           return {
             name: result.extracted_data.aadhaar.name,
             address: result.extracted_data.aadhaar.address,
             dob: result.extracted_data.aadhaar.dob,
-            confidence: result.extracted_data.aadhaar.confidence || 0.92
+            confidence: result.extracted_data.aadhaar.confidence || 0.92,
+            // Also store the complete API response for later use
+            apiResponse: result,
+            completeExtractedData: result.extracted_data
           }
         }
       }
@@ -396,18 +400,38 @@ export default function DocumentsPage() {
     if (!canContinue) return
 
     // Store all extracted data including income
-    const aadhaarData = aadhaarFrontDoc.processed ? aadhaarFrontDoc.extractedData : aadhaarBackDoc.extractedData
-    console.log('Storing extracted data:', {
+    // Use the COMPLETE backend response which includes combined + separate front/back data
+    let completeExtractedData = {}
+    
+    // Get the most recent API response which has the complete structure
+    if (aadhaarBackDoc.processed && aadhaarBackDoc.extractedData?.completeExtractedData) {
+      completeExtractedData = aadhaarBackDoc.extractedData.completeExtractedData
+      console.log('Using complete backend response (back):', completeExtractedData)
+    } else if (aadhaarFrontDoc.processed && aadhaarFrontDoc.extractedData?.completeExtractedData) {
+      completeExtractedData = aadhaarFrontDoc.extractedData.completeExtractedData
+      console.log('Using complete backend response (front):', completeExtractedData)
+    } else {
+      // Fallback to simple aadhaar data if complete data not available
+      const aadhaarData = aadhaarFrontDoc.processed ? aadhaarFrontDoc.extractedData : aadhaarBackDoc.extractedData
+      completeExtractedData = { aadhaar: aadhaarData }
+      console.log('Using fallback aadhaar data:', aadhaarData)
+    }
+    
+    // Merge with PAN and income data
+    const finalData = {
+      ...completeExtractedData,
       pan: panDoc.extractedData,
-      aadhaar: aadhaarData,
       income: incomeData
+    }
+    
+    console.log('Storing COMPLETE extracted data with all fields:', finalData)
+    console.log('Available address sources:', {
+      'aadhaar.address': finalData.aadhaar?.address,
+      'aadhaar_back.address': finalData.aadhaar_back?.address,
+      'aadhaar_front.address': finalData.aadhaar_front?.address
     })
     
-    localStorage.setItem('extractedData', JSON.stringify({
-      pan: panDoc.extractedData,
-      aadhaar: aadhaarData,
-      income: incomeData
-    }))
+    localStorage.setItem('extractedData', JSON.stringify(finalData))
 
     toast.success('All documents verified! Moving to next step...')
     setTimeout(() => {
