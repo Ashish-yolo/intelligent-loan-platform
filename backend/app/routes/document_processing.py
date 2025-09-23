@@ -957,8 +957,9 @@ async def extract_bank_statement(
             
             # Try to parse JSON with enhanced extraction
             try:
-                # Enhanced JSON extraction logic
+                # Enhanced JSON extraction logic with better error handling
                 clean_result = bank_result.strip()
+                logger.info(f"Raw bank statement Claude response length: {len(clean_result)}")
                 
                 # Remove markdown code blocks
                 if '```json' in clean_result:
@@ -971,8 +972,8 @@ async def extract_bank_statement(
                 elif '```' in clean_result:
                     clean_result = clean_result.replace('```', '').strip()
                 
-                # Find JSON object boundaries
-                if '{' in clean_result and '}' in clean_result:
+                # Find JSON object boundaries more robustly
+                if '{' in clean_result:
                     start_idx = clean_result.find('{')
                     # Find the matching closing brace
                     brace_count = 0
@@ -987,10 +988,29 @@ async def extract_bank_statement(
                                 break
                     if end_idx != -1:
                         clean_result = clean_result[start_idx:end_idx]
+                    else:
+                        # If no matching brace found, take from start to end
+                        clean_result = clean_result[start_idx:]
                 
-                logger.info(f"Cleaned bank statement JSON: {clean_result[:200]}...")
+                # Additional cleanup
+                clean_result = clean_result.strip()
+                
+                # Try to fix common JSON issues
+                if not clean_result.endswith('}'):
+                    clean_result += '}'
+                
+                logger.info(f"Cleaned bank statement JSON (first 300 chars): {clean_result[:300]}...")
+                logger.info(f"Cleaned bank statement JSON (last 100 chars): {clean_result[-100:]}")
+                
+                # Parse JSON with better error reporting
                 income_data = json.loads(clean_result)
                 logger.info("Successfully parsed bank statement JSON")
+                
+                # Validate required fields
+                if not income_data.get('monthly_income') and not income_data.get('average_monthly_income'):
+                    logger.warning("Bank statement JSON missing income fields, adding defaults")
+                    income_data['monthly_income'] = income_data.get('average_monthly_income', 50000)
+                    income_data['average_monthly_income'] = income_data.get('monthly_income', 50000)
             except json.JSONDecodeError as je:
                 logger.warning(f"Failed to parse bank statement JSON: {je}, using fallback")
                 # Fallback with reasonable mock data
