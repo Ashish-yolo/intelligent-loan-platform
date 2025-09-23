@@ -924,14 +924,17 @@ async def extract_bank_statement(
         bank_base64 = None
         media_type = None
         try:
+            logger.info(f"PROCESSING: Starting bank statement file processing, content_type: {bank_file.content_type}")
             bank_base64, media_type = process_document_file(bank_content, bank_file.content_type)
             bank_base64 = optimize_image_for_api(bank_base64)
-            logger.info(f"Bank statement processed successfully, media_type: {media_type}")
+            logger.info(f"PROCESSING: Bank statement processed successfully, media_type: {media_type}, base64_length: {len(bank_base64) if bank_base64 else 0}")
         except Exception as e:
-            logger.error(f"Failed to process bank statement file: {e}")
+            logger.error(f"PROCESSING: Failed to process bank statement file: {e}")
+            logger.error(f"PROCESSING: Exception type: {type(e).__name__}")
             raise HTTPException(status_code=400, detail=f"Failed to process bank statement file: {str(e)}")
         
         if not bank_base64 or not media_type:
+            logger.error(f"PROCESSING: File processing failed - bank_base64: {bool(bank_base64)}, media_type: {media_type}")
             raise HTTPException(status_code=400, detail="Failed to process bank statement file for Claude API")
         
         bank_extraction_prompt = """
@@ -1048,7 +1051,8 @@ async def extract_bank_statement(
                 }
         except Exception as e:
             logger.error(f"Bank statement processing error: {e}")
-            # Seamless fallback data
+            logger.error(f"Exception type: {type(e).__name__}")
+            # Seamless fallback data with specific error
             income_data = {
                 "account_holder": "Rajesh Kumar Sharma",
                 "bank_name": "HDFC Bank",
@@ -1057,7 +1061,8 @@ async def extract_bank_statement(
                 "monthly_income": 75000,
                 "confidence": 0.85,
                 "document_type": "Bank Statement",
-                "processing_note": "Demo mode - Claude API not configured"
+                "processing_note": f"Claude API processing failed: {type(e).__name__}",
+                "error_details": str(e)
             }
         
         # Store income data
