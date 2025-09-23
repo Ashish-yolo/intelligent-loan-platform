@@ -1117,21 +1117,28 @@ async def process_protected_bank_statement(
         pan_data = None
         if user_id:
             try:
+                logger.info(f"Attempting to retrieve PAN data for user_id: {user_id}")
                 # Attempt to get stored PAN data from database
                 user_data = await get_user_extracted_data(user_id)
+                logger.info(f"Retrieved user_data: {user_data is not None}")
+                
                 if user_data and 'pan' in user_data:
                     pan_info = user_data['pan']
+                    logger.info(f"PAN info found: {pan_info}")
                     pan_data = {
                         'name': pan_info.get('name', ''),
                         'date_of_birth': pan_info.get('dob', '')
                     }
-                    logger.info(f"Retrieved PAN data for password generation: {pan_data['name'][:4]}****")
+                    logger.info(f"Extracted PAN data for password: name={pan_data['name'][:4]}****, dob={pan_data['date_of_birth']}")
+                else:
+                    logger.warning(f"No PAN data in user_data. Available keys: {list(user_data.keys()) if user_data else 'None'}")
             except Exception as e:
                 logger.warning(f"Could not retrieve PAN data from database: {e}")
         
         # Fallback to demo data if real data not available
         if not pan_data or not pan_data.get('name') or not pan_data.get('date_of_birth'):
-            logger.info("Using fallback PAN data for password generation")
+            logger.warning("PAN data incomplete, using fallback demo data for password generation")
+            logger.warning(f"pan_data: {pan_data}")
             pan_data = {
                 'name': 'RAJESH KUMAR SHARMA',
                 'date_of_birth': '15/08/1985'
@@ -1361,10 +1368,26 @@ async def store_income_data(user_id: str, income_data: Dict[str, Any], source_ty
 async def get_user_extracted_data(user_id: str) -> dict:
     """Get previously extracted document data for user"""
     try:
-        # For now, return None - implement actual database retrieval later
-        logger.info(f"Attempting to retrieve extracted data for user {user_id}")
-        # TODO: Implement actual database retrieval from supabase
-        return None
+        logger.info(f"Retrieving extracted document data for user {user_id}")
+        
+        # Query the ai_analysis table for the most recent document extraction
+        result = supabase_service.client.table("ai_analysis")\
+            .select("output_data")\
+            .eq("analysis_type", "document_extraction")\
+            .contains("input_data", {"user_id": user_id})\
+            .order("created_at", desc=True)\
+            .limit(1)\
+            .execute()
+        
+        if result.data and len(result.data) > 0:
+            extracted_data = result.data[0]["output_data"]
+            logger.info(f"Successfully retrieved extracted data for user {user_id}")
+            logger.info(f"Available data keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
+            return extracted_data
+        else:
+            logger.warning(f"No extracted data found for user {user_id}")
+            return None
+            
     except Exception as e:
         logger.error(f"Error retrieving user extracted data: {e}")
         return None
