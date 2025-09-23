@@ -31,19 +31,24 @@ const parseAadhaarAddress = (address) => {
     }
   }
 
+  console.log('Raw address input:', JSON.stringify(address))
+  
   // Remove S/O, W/O, D/O prefixes and extract the actual address
-  let cleanAddress = address
-  const soMatch = address.match(/^S\/O:\s*([^,]+),\s*(.+)$/)
+  let cleanAddress = address.toString().trim()
+  const soMatch = cleanAddress.match(/^S\/O:\s*([^,]+),\s*(.+)$/)
   if (soMatch) {
     cleanAddress = soMatch[2] // Take everything after "S/O: Name,"
+    console.log('Removed S/O prefix, clean address:', cleanAddress)
   }
 
   // Split by commas and clean up each part
   const parts = cleanAddress.split(',').map(part => part.trim()).filter(part => part.length > 0)
+  console.log('Address parts after splitting:', parts)
   
   // Extract pincode (6 digits)
-  const pincodeMatch = address.match(/\b(\d{6})\b/)
+  const pincodeMatch = cleanAddress.match(/\b(\d{6})\b/)
   const pincode = pincodeMatch ? pincodeMatch[1] : ''
+  console.log('Extracted pincode:', pincode)
   
   // Common Indian states (for better parsing)
   const indianStates = [
@@ -63,6 +68,7 @@ const parseAadhaarAddress = (address) => {
     if (indianStates.some(s => s.toLowerCase() === parts[i].toLowerCase())) {
       state = parts[i]
       stateIndex = i
+      console.log('Found state:', state, 'at index:', stateIndex)
       break
     }
   }
@@ -76,19 +82,42 @@ const parseAadhaarAddress = (address) => {
     const lastPart = parts[parts.length - 1]
     city = /\d{6}/.test(lastPart) && parts.length > 1 ? parts[parts.length - 2] : lastPart
   }
+  console.log('Extracted city:', city)
   
   // Address lines are the remaining parts
   const addressParts = parts.filter((part, index) => {
     return index < stateIndex - 1 && !part.includes(pincode)
   })
   
-  return {
+  // If no proper state/city found, use a simpler approach
+  if (!state && !city && parts.length > 0) {
+    console.log('Using fallback parsing approach')
+    // Take first part as line1, second as line2, last as city if no pincode
+    const line1 = parts[0] || ''
+    const line2 = parts.length > 1 ? parts[1] : ''
+    const fallbackCity = parts.length > 2 ? parts[parts.length - (pincode ? 2 : 1)] : ''
+    
+    const result = {
+      line1: line1,
+      line2: line2,
+      city: fallbackCity,
+      state: '',
+      pincode: pincode
+    }
+    console.log('Fallback parsing result:', result)
+    return result
+  }
+  
+  const result = {
     line1: addressParts[0] || '',
     line2: addressParts.slice(1, 3).join(', ') || '',
     city: city || '',
     state: state || '',
     pincode: pincode || ''
   }
+  
+  console.log('Final parsing result:', result)
+  return result
 }
 
 export default function VerificationPage() {
