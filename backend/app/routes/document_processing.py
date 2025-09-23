@@ -1083,12 +1083,29 @@ async def process_protected_bank_statement(
             raise HTTPException(status_code=400, detail="Bank statement file is empty")
         
         # Get PAN data from previous extraction for password generation
-        # In real implementation, this would be retrieved from database or localStorage
-        # For now, using demo data
-        pan_data = {
-            'name': 'RAJESH KUMAR SHARMA',
-            'date_of_birth': '15/08/1985'
-        }
+        # Try to retrieve from stored user data first
+        pan_data = None
+        if user_id:
+            try:
+                # Attempt to get stored PAN data from database
+                user_data = await get_user_extracted_data(user_id)
+                if user_data and 'pan' in user_data:
+                    pan_info = user_data['pan']
+                    pan_data = {
+                        'name': pan_info.get('name', ''),
+                        'date_of_birth': pan_info.get('dob', '')
+                    }
+                    logger.info(f"Retrieved PAN data for password generation: {pan_data['name'][:4]}****")
+            except Exception as e:
+                logger.warning(f"Could not retrieve PAN data from database: {e}")
+        
+        # Fallback to demo data if real data not available
+        if not pan_data or not pan_data.get('name') or not pan_data.get('date_of_birth'):
+            logger.info("Using fallback PAN data for password generation")
+            pan_data = {
+                'name': 'RAJESH KUMAR SHARMA',
+                'date_of_birth': '15/08/1985'
+            }
         
         # Initialize bank statement processor
         processor = BankStatementProcessor()
@@ -1310,3 +1327,14 @@ async def store_income_data(user_id: str, income_data: Dict[str, Any], source_ty
         logger.info(f"Successfully stored income data for user {user_id} from {source_type}")
     except Exception as e:
         logger.error(f"Error storing income data: {e}")
+
+async def get_user_extracted_data(user_id: str) -> dict:
+    """Get previously extracted document data for user"""
+    try:
+        # For now, return None - implement actual database retrieval later
+        logger.info(f"Attempting to retrieve extracted data for user {user_id}")
+        # TODO: Implement actual database retrieval from supabase
+        return None
+    except Exception as e:
+        logger.error(f"Error retrieving user extracted data: {e}")
+        return None
