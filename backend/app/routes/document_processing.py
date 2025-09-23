@@ -1115,39 +1115,69 @@ async def process_protected_bank_statement(
         # Get PAN data from previous extraction for password generation
         # Try to retrieve from stored user data first
         pan_data = None
+        logger.info(f"Starting PAN data retrieval for user_id: '{user_id}' (type: {type(user_id)})")
+        
         if user_id:
             try:
                 logger.info(f"Attempting to retrieve PAN data for user_id: {user_id}")
                 # Attempt to get stored PAN data from database
                 user_data = await get_user_extracted_data(user_id)
-                logger.info(f"Retrieved user_data: {user_data is not None}")
+                logger.info(f"Database query result: user_data is {'not ' if not user_data else ''}None")
                 
-                if user_data and 'pan' in user_data:
-                    pan_info = user_data['pan']
-                    logger.info(f"PAN info found: {pan_info}")
+                if user_data:
+                    logger.info(f"Available data keys in user_data: {list(user_data.keys())}")
                     
-                    # Try different possible field names for date of birth
-                    dob = pan_info.get('dob') or pan_info.get('date_of_birth') or pan_info.get('dateOfBirth') or ''
-                    
-                    pan_data = {
-                        'name': pan_info.get('name', ''),
-                        'date_of_birth': dob
-                    }
-                    logger.info(f"Extracted PAN data for password: name='{pan_data['name']}', dob='{pan_data['date_of_birth']}'")
-                    logger.info(f"Full PAN info for debugging: {json.dumps(pan_info, indent=2)}")
+                    if 'pan' in user_data:
+                        pan_info = user_data['pan']
+                        logger.info(f"PAN info found: {json.dumps(pan_info, indent=2)}")
+                        
+                        # Try different possible field names for date of birth
+                        dob = pan_info.get('dob') or pan_info.get('date_of_birth') or pan_info.get('dateOfBirth') or ''
+                        name = pan_info.get('name', '')
+                        
+                        if name and dob:
+                            pan_data = {
+                                'name': name,
+                                'date_of_birth': dob
+                            }
+                            logger.info(f"✅ Successfully extracted PAN data for password: name='{name}', dob='{dob}'")
+                            
+                            # Test password generation to verify
+                            from app.utils.bank_statement_processor import BankStatementProcessor
+                            test_processor = BankStatementProcessor()
+                            test_password = test_processor.generate_bank_password(pan_data)
+                            logger.info(f"✅ Generated test password: {test_password}")
+                        else:
+                            logger.warning(f"❌ PAN data incomplete: name='{name}', dob='{dob}'")
+                    else:
+                        logger.warning(f"❌ No 'pan' key in user_data. Available keys: {list(user_data.keys())}")
                 else:
-                    logger.warning(f"No PAN data in user_data. Available keys: {list(user_data.keys()) if user_data else 'None'}")
+                    logger.warning(f"❌ No user_data returned from database for user_id: {user_id}")
+                    
             except Exception as e:
-                logger.warning(f"Could not retrieve PAN data from database: {e}")
+                logger.error(f"❌ Error retrieving PAN data from database: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+        else:
+            logger.warning(f"❌ No user_id provided for PAN data retrieval")
         
         # Fallback to demo data if real data not available
         if not pan_data or not pan_data.get('name') or not pan_data.get('date_of_birth'):
-            logger.warning("PAN data incomplete, using fallback demo data for password generation")
-            logger.warning(f"pan_data: {pan_data}")
+            logger.warning("❌ Using fallback demo data - REAL PAN DATA NOT AVAILABLE")
+            logger.warning(f"pan_data state: {pan_data}")
+            logger.warning("🔍 This means either:")
+            logger.warning("   1. User hasn't uploaded PAN card yet")
+            logger.warning("   2. PAN extraction failed") 
+            logger.warning("   3. Database storage/retrieval issue")
+            logger.warning("   4. User ID mismatch")
+            
             pan_data = {
                 'name': 'RAJESH KUMAR SHARMA',
                 'date_of_birth': '15/08/1985'
             }
+            logger.warning(f"📝 Using demo password generation: {pan_data}")
+        else:
+            logger.info(f"✅ Using REAL PAN data for password generation: {pan_data['name'][:4]}****")
         
         # Initialize bank statement processor
         processor = BankStatementProcessor()
@@ -1373,26 +1403,58 @@ async def store_income_data(user_id: str, income_data: Dict[str, Any], source_ty
 async def get_user_extracted_data(user_id: str) -> dict:
     """Get previously extracted document data for user"""
     try:
-        logger.info(f"Retrieving extracted document data for user {user_id}")
+        logger.info(f"🔍 Retrieving extracted document data for user_id: '{user_id}'")
         
         # Query the ai_analysis table for the most recent document extraction
+        logger.info(f"🔍 Querying ai_analysis table...")
         result = supabase_service.client.table("ai_analysis")\
-            .select("output_data")\
+            .select("output_data, input_data, created_at")\
             .eq("analysis_type", "document_extraction")\
             .contains("input_data", {"user_id": user_id})\
             .order("created_at", desc=True)\
             .limit(1)\
             .execute()
         
+        logger.info(f"🔍 Database query executed. Result count: {len(result.data) if result.data else 0}")
+        
         if result.data and len(result.data) > 0:
             extracted_data = result.data[0]["output_data"]
-            logger.info(f"Successfully retrieved extracted data for user {user_id}")
-            logger.info(f"Available data keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
+            input_data = result.data[0]["input_data"]
+            created_at = result.data[0]["created_at"]
+            
+            logger.info(f"✅ Found extraction record:")
+            logger.info(f"   📅 Created: {created_at}")
+            logger.info(f"   📝 Input data: {input_data}")
+            logger.info(f"   🔑 Available keys: {list(extracted_data.keys()) if extracted_data else 'None'}")
+            
+            # Check if PAN data exists
+            if extracted_data and 'pan' in extracted_data:
+                pan_data = extracted_data['pan']
+                logger.info(f"✅ PAN data found in extraction: name='{pan_data.get('name', 'missing')}', dob='{pan_data.get('dob', 'missing')}'")
+            else:
+                logger.warning(f"❌ No PAN data in extracted_data")
+                
             return extracted_data
         else:
-            logger.warning(f"No extracted data found for user {user_id}")
+            logger.warning(f"❌ No extracted data found for user_id: '{user_id}'")
+            
+            # Let's also check what records exist in the table
+            logger.info(f"🔍 Checking all records for debugging...")
+            all_records = supabase_service.client.table("ai_analysis")\
+                .select("input_data, analysis_type, created_at")\
+                .eq("analysis_type", "document_extraction")\
+                .order("created_at", desc=True)\
+                .limit(5)\
+                .execute()
+            
+            logger.info(f"🔍 Recent document_extraction records:")
+            for i, record in enumerate(all_records.data[:3] if all_records.data else []):
+                logger.info(f"   {i+1}. Input: {record.get('input_data')}, Created: {record.get('created_at')}")
+                
             return None
             
     except Exception as e:
-        logger.error(f"Error retrieving user extracted data: {e}")
+        logger.error(f"❌ Error retrieving user extracted data: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return None
