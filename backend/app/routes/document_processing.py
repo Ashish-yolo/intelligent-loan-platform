@@ -919,8 +919,20 @@ async def extract_bank_statement(
         bank_content = await bank_file.read()
         if len(bank_content) == 0:
             raise HTTPException(status_code=400, detail="Bank statement file is empty")
-            
-        bank_base64 = base64.b64encode(bank_content).decode()
+        
+        # Process file (convert PDF to image if needed) - same as other document types
+        bank_base64 = None
+        media_type = None
+        try:
+            bank_base64, media_type = process_document_file(bank_content, bank_file.content_type)
+            bank_base64 = optimize_image_for_api(bank_base64)
+            logger.info(f"Bank statement processed successfully, media_type: {media_type}")
+        except Exception as e:
+            logger.error(f"Failed to process bank statement file: {e}")
+            raise HTTPException(status_code=400, detail=f"Failed to process bank statement file: {str(e)}")
+        
+        if not bank_base64 or not media_type:
+            raise HTTPException(status_code=400, detail="Failed to process bank statement file for Claude API")
         
         bank_extraction_prompt = """
         You are analyzing a BANK STATEMENT document only. Do NOT extract or reference any other document types like PAN cards, Aadhaar cards, or salary slips. Focus ONLY on transaction and income information from this bank statement document.
@@ -949,11 +961,18 @@ async def extract_bank_statement(
         """
         
         try:
+            # Check if Claude client is available before making the call
+            if not claude_service.client:
+                logger.error("PROCESSING: Claude client not initialized for bank statement")
+                raise Exception("Claude API not configured for bank statement processing")
+            
+            logger.info("PROCESSING: Making real Claude API call for bank statement extraction")
             bank_result = await claude_service.analyze_document(
                 image_data=bank_base64,
-                prompt=bank_extraction_prompt
+                prompt=bank_extraction_prompt,
+                media_type=media_type
             )
-            logger.info(f"Bank statement extraction result: {bank_result}")
+            logger.info(f"Bank statement extraction result: {bank_result[:200]}...")
             
             # Try to parse JSON with enhanced extraction
             try:
@@ -1060,7 +1079,7 @@ async def extract_bank_statement(
                 "monthly_income": 78000,
                 "confidence": 0.85,
                 "document_type": "Bank Statement",
-                "processing_note": "Demo mode - service temporarily unavailable"
+                "processing_note": "Demo mode - Claude API not configured"
             }
         }
 
