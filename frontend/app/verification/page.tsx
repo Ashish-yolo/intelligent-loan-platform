@@ -14,24 +14,10 @@ import {
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
-interface FormData {
-  fullName: string
-  dateOfBirth: string
-  panNumber: string
-  aadhaarNumber: string
-  address: {
-    line1: string
-    line2: string
-    city: string
-    state: string
-    pincode: string
-  }
-  gender: string
-  consentGiven: boolean
-}
+// TypeScript interfaces removed for JSX compatibility
 
 // Helper function to parse Aadhaar address intelligently
-const parseAadhaarAddress = (address: string) => {
+const parseAadhaarAddress = (address) => {
   if (!address) {
     return {
       line1: '',
@@ -103,7 +89,7 @@ const parseAadhaarAddress = (address: string) => {
 }
 
 export default function VerificationPage() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     fullName: '',
     dateOfBirth: '',
     panNumber: '',
@@ -121,7 +107,7 @@ export default function VerificationPage() {
 
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
-  const [incomeData, setIncomeData] = useState<any>(null)
+  const [incomeData, setIncomeData] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -161,7 +147,7 @@ export default function VerificationPage() {
 
   }, [router])
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field, value) => {
     if (field.startsWith('address.')) {
       const addressField = field.split('.')[1]
       setFormData(prev => ({
@@ -258,66 +244,6 @@ export default function VerificationPage() {
           </p>
         </div>
 
-        {dataLoaded && (
-          <div className="mb-6">
-            <div className="bg-green-600 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4">
-              <div className="flex items-center space-x-3 mb-3">
-                <CheckCircleIcon className="h-6 w-6 text-green-400 flex-shrink-0" />
-                <div>
-                  <p className="text-green-400 font-medium">Documents processed successfully!</p>
-                  <p className="text-green-300 text-sm">Information extracted and pre-filled below</p>
-                </div>
-              </div>
-              
-              {/* Document Confidence Indicators */}
-              <div className="grid md:grid-cols-3 gap-3 mt-3">
-                {(() => {
-                  const extractedData = localStorage.getItem('extractedData');
-                  if (extractedData) {
-                    const data = JSON.parse(extractedData);
-                    const elements = [];
-                    
-                    if (data.pan && data.pan.confidence > 0) {
-                      elements.push(
-                        <div key="pan" className="bg-blue-600 bg-opacity-20 rounded-lg p-2 text-center">
-                          <div className="text-blue-400 font-bold text-lg">
-                            {Math.round(data.pan.confidence * 100)}%
-                          </div>
-                          <div className="text-blue-300 text-xs">PAN Confidence</div>
-                        </div>
-                      );
-                    }
-                    
-                    if (data.aadhaar && data.aadhaar.confidence > 0) {
-                      elements.push(
-                        <div key="aadhaar" className="bg-purple-600 bg-opacity-20 rounded-lg p-2 text-center">
-                          <div className="text-purple-400 font-bold text-lg">
-                            {Math.round(data.aadhaar.confidence * 100)}%
-                          </div>
-                          <div className="text-purple-300 text-xs">Aadhaar Confidence</div>
-                        </div>
-                      );
-                    }
-                    
-                    if (incomeData && incomeData.confidence > 0) {
-                      elements.push(
-                        <div key="income" className="bg-green-600 bg-opacity-20 rounded-lg p-2 text-center">
-                          <div className="text-green-400 font-bold text-lg">
-                            {Math.round(incomeData.confidence * 100)}%
-                          </div>
-                          <div className="text-green-300 text-xs">Income Confidence</div>
-                        </div>
-                      );
-                    }
-                    
-                    return elements;
-                  }
-                  return null;
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="space-y-6">
           {/* Personal Information */}

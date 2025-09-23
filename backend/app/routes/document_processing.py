@@ -708,6 +708,8 @@ async def extract_salary_slip(
             }
         
         salary_extraction_prompt = """
+        You are analyzing a SALARY SLIP document only. Do NOT extract or reference any other document types like PAN cards, Aadhaar cards, or bank statements. Focus ONLY on salary/income information from this salary slip document.
+        
         You are a fraud detection and document processing AI for a legitimate financial institution. Analyze this salary slip for fraud indicators and extract income data:
 
         SALARY SLIP FRAUD DETECTION CHECKS:
@@ -797,15 +799,40 @@ async def extract_salary_slip(
                 )
                 logger.info(f"Real Claude API response for salary: {salary_result[:200]}...")
                 
-                # Try to parse the JSON response
+                # Try to parse the JSON response with improved extraction
                 try:
-                    # Clean the response - remove any markdown formatting
+                    # Enhanced JSON extraction logic
                     clean_result = salary_result.strip()
-                    if clean_result.startswith('```json'):
-                        clean_result = clean_result.replace('```json', '').replace('```', '').strip()
-                    elif clean_result.startswith('```'):
+                    
+                    # Remove markdown code blocks
+                    if '```json' in clean_result:
+                        json_start = clean_result.find('```json') + 7
+                        json_end = clean_result.find('```', json_start)
+                        if json_end != -1:
+                            clean_result = clean_result[json_start:json_end].strip()
+                        else:
+                            clean_result = clean_result[json_start:].strip()
+                    elif '```' in clean_result:
                         clean_result = clean_result.replace('```', '').strip()
                     
+                    # Find JSON object boundaries
+                    if '{' in clean_result and '}' in clean_result:
+                        start_idx = clean_result.find('{')
+                        # Find the matching closing brace
+                        brace_count = 0
+                        end_idx = -1
+                        for i in range(start_idx, len(clean_result)):
+                            if clean_result[i] == '{':
+                                brace_count += 1
+                            elif clean_result[i] == '}':
+                                brace_count -= 1
+                                if brace_count == 0:
+                                    end_idx = i + 1
+                                    break
+                        if end_idx != -1:
+                            clean_result = clean_result[start_idx:end_idx]
+                    
+                    logger.info(f"Cleaned JSON for parsing: {clean_result[:200]}...")
                     salary_response = json.loads(clean_result)
                     # Handle new fraud analysis structure
                     if "extracted_data" in salary_response and "fraud_analysis" in salary_response:
@@ -896,6 +923,8 @@ async def extract_bank_statement(
         bank_base64 = base64.b64encode(bank_content).decode()
         
         bank_extraction_prompt = """
+        You are analyzing a BANK STATEMENT document only. Do NOT extract or reference any other document types like PAN cards, Aadhaar cards, or salary slips. Focus ONLY on transaction and income information from this bank statement document.
+        
         Analyze this bank statement and extract salary/income information:
         - Look for regular salary credits
         - Identify monthly income pattern
@@ -926,15 +955,40 @@ async def extract_bank_statement(
             )
             logger.info(f"Bank statement extraction result: {bank_result}")
             
-            # Try to parse JSON, with fallback
+            # Try to parse JSON with enhanced extraction
             try:
-                # Clean the response - remove any markdown formatting
+                # Enhanced JSON extraction logic
                 clean_result = bank_result.strip()
-                if clean_result.startswith('```json'):
-                    clean_result = clean_result.replace('```json', '').replace('```', '').strip()
-                elif clean_result.startswith('```'):
+                
+                # Remove markdown code blocks
+                if '```json' in clean_result:
+                    json_start = clean_result.find('```json') + 7
+                    json_end = clean_result.find('```', json_start)
+                    if json_end != -1:
+                        clean_result = clean_result[json_start:json_end].strip()
+                    else:
+                        clean_result = clean_result[json_start:].strip()
+                elif '```' in clean_result:
                     clean_result = clean_result.replace('```', '').strip()
                 
+                # Find JSON object boundaries
+                if '{' in clean_result and '}' in clean_result:
+                    start_idx = clean_result.find('{')
+                    # Find the matching closing brace
+                    brace_count = 0
+                    end_idx = -1
+                    for i in range(start_idx, len(clean_result)):
+                        if clean_result[i] == '{':
+                            brace_count += 1
+                        elif clean_result[i] == '}':
+                            brace_count -= 1
+                            if brace_count == 0:
+                                end_idx = i + 1
+                                break
+                    if end_idx != -1:
+                        clean_result = clean_result[start_idx:end_idx]
+                
+                logger.info(f"Cleaned bank statement JSON: {clean_result[:200]}...")
                 income_data = json.loads(clean_result)
                 logger.info("Successfully parsed bank statement JSON")
             except json.JSONDecodeError as je:
