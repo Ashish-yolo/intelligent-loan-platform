@@ -90,7 +90,8 @@ class BankStatementProcessor:
             month = date_match.group(2).zfill(2)
             
             password = f"{name_letters}{day}{month}"
-            logger.info(f"Generated password: {password[:4]}****")
+            logger.info(f"Generated password: {password} (showing full password for debugging)")
+            logger.info(f"Password components: name_letters='{name_letters}', day='{day}', month='{month}'")
             
             return password
             
@@ -116,10 +117,11 @@ class BankStatementProcessor:
             
             # Check if PDF is encrypted
             if pdf_reader.is_encrypted:
-                logger.info("PDF is encrypted, attempting to decrypt...")
+                logger.info(f"PDF is encrypted, attempting to decrypt with password: {password}")
                 decrypt_result = pdf_reader.decrypt(password)
                 
                 if not decrypt_result:
+                    logger.warning(f"Primary password failed: {password}")
                     # Try alternative password formats
                     alt_passwords = [
                         password.lower(),
@@ -128,15 +130,18 @@ class BankStatementProcessor:
                         '0' + password   # Some banks add leading zero
                     ]
                     
+                    logger.info(f"Trying alternative passwords: {alt_passwords}")
                     for alt_password in alt_passwords:
+                        logger.info(f"Trying password: {alt_password}")
                         if pdf_reader.decrypt(alt_password):
-                            logger.info(f"Successfully decrypted with alternative password")
+                            logger.info(f"Successfully decrypted with alternative password: {alt_password}")
                             password = alt_password
                             break
                     else:
-                        raise ValueError("Failed to decrypt PDF with provided password")
+                        logger.error(f"Failed to decrypt PDF with any password. Tried: {[password] + alt_passwords}")
+                        raise ValueError(f"Failed to decrypt PDF with provided password. Tried: {[password] + alt_passwords}")
                 else:
-                    logger.info("Successfully decrypted PDF")
+                    logger.info(f"Successfully decrypted PDF with primary password: {password}")
             
             # Extract text from all pages
             text_content = ""

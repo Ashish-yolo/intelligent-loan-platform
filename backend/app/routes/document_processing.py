@@ -1125,11 +1125,16 @@ async def process_protected_bank_statement(
                 if user_data and 'pan' in user_data:
                     pan_info = user_data['pan']
                     logger.info(f"PAN info found: {pan_info}")
+                    
+                    # Try different possible field names for date of birth
+                    dob = pan_info.get('dob') or pan_info.get('date_of_birth') or pan_info.get('dateOfBirth') or ''
+                    
                     pan_data = {
                         'name': pan_info.get('name', ''),
-                        'date_of_birth': pan_info.get('dob', '')
+                        'date_of_birth': dob
                     }
-                    logger.info(f"Extracted PAN data for password: name={pan_data['name'][:4]}****, dob={pan_data['date_of_birth']}")
+                    logger.info(f"Extracted PAN data for password: name='{pan_data['name']}', dob='{pan_data['date_of_birth']}'")
+                    logger.info(f"Full PAN info for debugging: {json.dumps(pan_info, indent=2)}")
                 else:
                     logger.warning(f"No PAN data in user_data. Available keys: {list(user_data.keys()) if user_data else 'None'}")
             except Exception as e:
