@@ -127,7 +127,20 @@ class BankStatementProcessor:
                         password.lower(),
                         password.upper(),
                         password + '0',  # Some banks add trailing zero
-                        '0' + password   # Some banks add leading zero
+                        '0' + password,   # Some banks add leading zero
+                        password + '00',  # Double zero
+                        password[:-2] + password[-2:].lower(),  # Mixed case (name upper, date lower)
+                        password[:4].lower() + password[4:],    # Name lower, date upper
+                        password + '1',   # Some banks add 1
+                        password.replace('0', ''),  # Remove zeros
+                        password[:4] + '/' + password[4:6] + '/' + password[6:],  # Add slashes to date
+                        password[:4] + '-' + password[4:6] + '-' + password[6:],  # Add dashes to date
+                        password[:4] + password[6:] + password[4:6],  # DDMM format instead of MMDD
+                        # Try full date formats
+                        password[:4] + password[4:6] + '/19' + password[6:],  # Add 19 for year
+                        password[:4] + password[4:6] + '/20' + password[6:],  # Add 20 for year
+                        password[:4] + password[4:6] + '19' + password[6:],   # Add 19 without slash
+                        password[:4] + password[4:6] + '20' + password[6:],   # Add 20 without slash
                     ]
                     
                     logger.info(f"Trying alternative passwords: {alt_passwords}")
@@ -145,15 +158,21 @@ class BankStatementProcessor:
             
             # Extract text from all pages
             text_content = ""
-            for page_num in range(len(pdf_reader.pages)):
-                page = pdf_reader.pages[page_num]
-                text_content += page.extract_text() + "\n"
-            
-            if not text_content.strip():
-                raise ValueError("No text content found in PDF")
-            
-            logger.info(f"Extracted {len(text_content)} characters from PDF")
-            return text_content
+            try:
+                for page_num in range(len(pdf_reader.pages)):
+                    page = pdf_reader.pages[page_num]
+                    page_text = page.extract_text()
+                    if page_text:
+                        text_content += page_text + "\n"
+                
+                if not text_content.strip():
+                    raise ValueError("No text content found in PDF")
+                
+                logger.info(f"Extracted {len(text_content)} characters from PDF")
+                return text_content
+            except Exception as e:
+                logger.error(f"Error extracting text from PDF: {e}")
+                raise ValueError(f"Failed to extract text from PDF: {str(e)}")
             
         except Exception as e:
             logger.error(f"Error processing PDF: {str(e)}")

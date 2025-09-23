@@ -156,9 +156,14 @@ export default function VerificationPage() {
       try {
         const data = JSON.parse(extractedData)
         // Try multiple possible address field names from Aadhaar data
-        const aadhaarAddress = data.aadhaar?.address || 
+        // Prioritize Aadhaar back data for address (as address is typically on the back)
+        const aadhaarAddress = data.aadhaar_back?.address || 
+                              data.aadhaar?.address || 
+                              data.aadhaar_back?.complete_address || 
                               data.aadhaar?.complete_address || 
+                              data.aadhaar_back?.full_address || 
                               data.aadhaar?.full_address || 
+                              data.aadhaar_back?.addr || 
                               data.aadhaar?.addr || ''
         
         const parsedAddress = parseAadhaarAddress(aadhaarAddress)
@@ -175,7 +180,10 @@ export default function VerificationPage() {
           rawAddress: aadhaarAddress,
           parsedAddress: parsedAddress,
           aadhaarNumber: data.aadhaar?.aadhaar_number,
-          fullAadhaarData: data.aadhaar
+          fullAadhaarData: data.aadhaar,
+          fullAadhaarBackData: data.aadhaar_back,
+          hasAadhaarBack: !!data.aadhaar_back,
+          addressSource: data.aadhaar_back?.address ? 'aadhaar_back' : 'aadhaar'
         })
         
         // Additional logging to debug address auto-fill
