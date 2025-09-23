@@ -307,6 +307,24 @@ export default function DocumentsPage() {
       formData.append('user_id', token)
     }
 
+    // For bank statements, add PAN data for password generation
+    if (type === 'bank_statement') {
+      const extractedData = localStorage.getItem('extractedData')
+      if (extractedData) {
+        try {
+          const data = JSON.parse(extractedData)
+          const panData = data.pan
+          if (panData && panData.name && panData.dob) {
+            formData.append('pan_name', panData.name)
+            formData.append('pan_dob', panData.dob)
+            console.log('Added PAN data for password generation:', { name: panData.name, dob: panData.dob })
+          }
+        } catch (e) {
+          console.warn('Could not parse extracted data for PAN info:', e)
+        }
+      }
+    }
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const endpoint = type === 'salary_slip' 

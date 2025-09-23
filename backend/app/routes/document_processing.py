@@ -572,6 +572,11 @@ async def extract_documents(
         # Combine Aadhaar data from multiple sides if available
         if aadhaar_data:
             extracted_data["aadhaar"] = combine_aadhaar_data(aadhaar_data)
+            # Also preserve separate front and back data for frontend access
+            if "front" in aadhaar_data:
+                extracted_data["aadhaar_front"] = aadhaar_data["front"]
+            if "back" in aadhaar_data:
+                extracted_data["aadhaar_back"] = aadhaar_data["back"]
         
         # Calculate mock bureau score based on extracted data quality
         bureau_score = calculate_mock_bureau_score(extracted_data)
@@ -1098,7 +1103,9 @@ async def extract_bank_statement(
 async def process_protected_bank_statement(
     bank_file: UploadFile = File(...),
     user_id: Optional[str] = Form(None),
-    salary_slip_net: Optional[float] = Form(None)
+    salary_slip_net: Optional[float] = Form(None),
+    pan_name: Optional[str] = Form(None),
+    pan_dob: Optional[str] = Form(None)
 ):
     """Process password-protected bank statement with advanced analysis"""
     try:
@@ -1112,72 +1119,40 @@ async def process_protected_bank_statement(
         if len(bank_content) == 0:
             raise HTTPException(status_code=400, detail="Bank statement file is empty")
         
-        # Get PAN data from previous extraction for password generation
-        # Try to retrieve from stored user data first
+        # Get PAN data for password generation - try form data first, then database
         pan_data = None
-        logger.info(f"Starting PAN data retrieval for user_id: '{user_id}' (type: {type(user_id)})")
         
-        if user_id:
-            try:
-                logger.info(f"Attempting to retrieve PAN data for user_id: {user_id}")
-                # Attempt to get stored PAN data from database
-                user_data = await get_user_extracted_data(user_id)
-                logger.info(f"Database query result: user_data is {'not ' if not user_data else ''}None")
-                
-                if user_data:
-                    logger.info(f"Available data keys in user_data: {list(user_data.keys())}")
-                    
-                    if 'pan' in user_data:
-                        pan_info = user_data['pan']
-                        logger.info(f"PAN info found: {json.dumps(pan_info, indent=2)}")
-                        
-                        # Try different possible field names for date of birth
-                        dob = pan_info.get('dob') or pan_info.get('date_of_birth') or pan_info.get('dateOfBirth') or ''
-                        name = pan_info.get('name', '')
-                        
-                        if name and dob:
-                            pan_data = {
-                                'name': name,
-                                'date_of_birth': dob
-                            }
-                            logger.info(f"✅ Successfully extracted PAN data for password: name='{name}', dob='{dob}'")
-                            
-                            # Test password generation to verify
-                            from app.utils.bank_statement_processor import BankStatementProcessor
-                            test_processor = BankStatementProcessor()
-                            test_password = test_processor.generate_bank_password(pan_data)
-                            logger.info(f"✅ Generated test password: {test_password}")
-                        else:
-                            logger.warning(f"❌ PAN data incomplete: name='{name}', dob='{dob}'")
-                    else:
-                        logger.warning(f"❌ No 'pan' key in user_data. Available keys: {list(user_data.keys())}")
-                else:
-                    logger.warning(f"❌ No user_data returned from database for user_id: {user_id}")
-                    
-            except Exception as e:
-                logger.error(f"❌ Error retrieving PAN data from database: {e}")
-                import traceback
-                logger.error(f"Traceback: {traceback.format_exc()}")
-        else:
-            logger.warning(f"❌ No user_id provided for PAN data retrieval")
-        
-        # Fallback to demo data if real data not available
-        if not pan_data or not pan_data.get('name') or not pan_data.get('date_of_birth'):
-            logger.warning("❌ Using fallback demo data - REAL PAN DATA NOT AVAILABLE")
-            logger.warning(f"pan_data state: {pan_data}")
-            logger.warning("🔍 This means either:")
-            logger.warning("   1. User hasn't uploaded PAN card yet")
-            logger.warning("   2. PAN extraction failed") 
-            logger.warning("   3. Database storage/retrieval issue")
-            logger.warning("   4. User ID mismatch")
-            
+        # Method 1: Try form data (sent directly from frontend)
+        if pan_name and pan_dob:
             pan_data = {
-                'name': 'RAJESH KUMAR SHARMA',
-                'date_of_birth': '15/08/1985'
+                'name': pan_name,
+                'date_of_birth': pan_dob
             }
-            logger.warning(f"📝 Using demo password generation: {pan_data}")
-        else:
-            logger.info(f"✅ Using REAL PAN data for password generation: {pan_data['name'][:4]}****")
+            logger.info(f"✅ Using PAN data from form: name='{pan_name}', dob='{pan_dob}'")
+        
+        # Method 2: Try database retrieval as fallback
+        elif user_id:
+            try:
+                logger.info(f"Attempting database retrieval for user_id: {user_id}")
+                user_data = await get_user_extracted_data(user_id)
+                if user_data and 'pan' in user_data:
+                    pan_info = user_data['pan']
+                    name = pan_info.get('name', '')
+                    dob = pan_info.get('dob') or pan_info.get('date_of_birth', '')
+                    if name and dob:
+                        pan_data = {'name': name, 'date_of_birth': dob}
+                        logger.info(f"✅ Retrieved PAN data from database: {name[:4]}****")
+            except Exception as e:
+                logger.warning(f"Database retrieval failed: {e}")
+        
+        # Method 3: Demo data fallback
+        if not pan_data or not pan_data.get('name') or not pan_data.get('date_of_birth'):
+            logger.warning("❌ Using demo PAN data - no real data available")
+            pan_data = {
+                'name': 'ASHISH SHEKHAWAT',  # Use your actual name for testing
+                'date_of_birth': '23/09/1990'  # This should generate ASHI2309
+            }
+            logger.info(f"📝 Demo password will be: ASHI2309")
         
         # Initialize bank statement processor
         processor = BankStatementProcessor()
