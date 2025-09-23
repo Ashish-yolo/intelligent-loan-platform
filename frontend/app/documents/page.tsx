@@ -76,7 +76,7 @@ export default function DocumentsPage() {
   }, [panDoc.processed, aadhaarFrontDoc.processed, aadhaarBackDoc.processed, showIncomeCollection])
 
   // Real AI processing with Anthropic API  
-  const processDocument = async (file: File, type: 'pan' | 'aadhaar_front' | 'aadhaar_back'): Promise<ExtractedData> => {
+  const processDocument = async (file, type) => {
     const formData = new FormData()
     
     if (type === 'pan') {
@@ -176,7 +176,7 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleFileUpload = useCallback(async (file: File, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
+  const handleFileUpload = useCallback(async (file, type) => {
     const setState = type === 'pan' ? setPanDoc : 
                      type === 'aadhaar_front' ? setAadhaarFrontDoc : 
                      setAadhaarBackDoc
@@ -254,7 +254,7 @@ export default function DocumentsPage() {
     }, 0) // Use setTimeout to allow parallel processing
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
+  const handleDrop = useCallback((e, type) => {
     e.preventDefault()
     setDragOver(null)
     
@@ -264,7 +264,7 @@ export default function DocumentsPage() {
     }
   }, [handleFileUpload])
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, type: 'pan' | 'aadhaar_front' | 'aadhaar_back') => {
+  const handleFileSelect = useCallback((e, type) => {
     const files = Array.from(e.target.files || [])
     if (files[0]) {
       handleFileUpload(files[0], type)
@@ -296,7 +296,7 @@ export default function DocumentsPage() {
   }
 
   // Process income document upload
-  const processIncomeDocument = async (file: File, type: 'salary_slip' | 'bank_statement') => {
+  const processIncomeDocument = async (file, type) => {
     setProcessingIncome(true)
     
     const formData = new FormData()
@@ -511,7 +511,7 @@ export default function DocumentsPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <span className="text-gray-400 capitalize">{key}:</span>
-                <span className="text-white font-medium">{value}</span>
+                <span className="text-white font-medium">{String(value)}</span>
               </div>
             )
           ))}
