@@ -18,7 +18,10 @@ import toast from 'react-hot-toast'
 
 // Helper function to parse Aadhaar address intelligently
 const parseAadhaarAddress = (address) => {
-  if (!address) {
+  console.log('parseAadhaarAddress called with:', address)
+  
+  if (!address || address.trim() === '') {
+    console.log('No address provided, returning empty fields')
     return {
       line1: '',
       line2: '',
@@ -123,20 +126,42 @@ export default function VerificationPage() {
     if (extractedData) {
       try {
         const data = JSON.parse(extractedData)
-        const parsedAddress = parseAadhaarAddress(data.aadhaar?.address || '')
+        // Try multiple possible address field names from Aadhaar data
+        const aadhaarAddress = data.aadhaar?.address || 
+                              data.aadhaar?.complete_address || 
+                              data.aadhaar?.full_address || 
+                              data.aadhaar?.addr || ''
+        
+        const parsedAddress = parseAadhaarAddress(aadhaarAddress)
         setFormData(prev => ({
           ...prev,
           fullName: data.pan?.name || data.aadhaar?.name || '',
           dateOfBirth: data.pan?.dob || data.aadhaar?.dob || '',
           panNumber: data.pan?.pan || '',
-          aadhaarNumber: data.aadhaar?.aadhaar_number || '',
+          aadhaarNumber: data.aadhaar?.aadhaar_number || data.aadhaar?.aadhaar_last4 || '',
           address: parsedAddress
         }))
         
         console.log('Extracted Aadhaar data:', {
-          rawAddress: data.aadhaar?.address,
+          rawAddress: aadhaarAddress,
           parsedAddress: parsedAddress,
-          aadhaarNumber: data.aadhaar?.aadhaar_number
+          aadhaarNumber: data.aadhaar?.aadhaar_number,
+          fullAadhaarData: data.aadhaar
+        })
+        
+        // Additional logging to debug address auto-fill
+        console.log('Address parsing result:', {
+          hasAadhaarData: !!data.aadhaar,
+          hasAddress: !!aadhaarAddress,
+          addressValue: aadhaarAddress,
+          addressFields: Object.keys(data.aadhaar || {}),
+          parsedFields: {
+            line1: parsedAddress.line1,
+            line2: parsedAddress.line2,
+            city: parsedAddress.city,
+            state: parsedAddress.state,
+            pincode: parsedAddress.pincode
+          }
         })
         setDataLoaded(true)
         
