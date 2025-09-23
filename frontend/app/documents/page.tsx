@@ -311,7 +311,7 @@ export default function DocumentsPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const endpoint = type === 'salary_slip' 
         ? '/api/documents/extract-salary-slip'
-        : '/api/documents/extract-bank-statement'
+        : '/api/documents/process-protected-bank-statement'
       
       console.log(`FRONTEND DEBUG: Calling income API: ${apiUrl}${endpoint}`)
       console.log(`FRONTEND DEBUG: Income document type: ${type}`)
