@@ -962,6 +962,7 @@ async def extract_bank_statement(
         
         try:
             # Check if Claude client is available before making the call
+            logger.info(f"PROCESSING: Checking Claude client availability: {claude_service.client is not None}")
             if not claude_service.client:
                 logger.error("PROCESSING: Claude client not initialized for bank statement")
                 raise Exception("Claude API not configured for bank statement processing")
@@ -1031,17 +1032,19 @@ async def extract_bank_statement(
                     income_data['monthly_income'] = income_data.get('average_monthly_income', 50000)
                     income_data['average_monthly_income'] = income_data.get('monthly_income', 50000)
             except json.JSONDecodeError as je:
-                logger.warning(f"Failed to parse bank statement JSON: {je}, using fallback")
-                # Fallback with reasonable mock data
+                logger.warning(f"Failed to parse bank statement JSON: {je}")
+                logger.warning(f"Raw response that failed to parse: {clean_result}")
+                # Fallback with reasonable mock data but indicate JSON parsing failed
                 income_data = {
                     "account_holder": "Rajesh Kumar Sharma",
-                    "bank_name": "HDFC Bank",
+                    "bank_name": "HDFC Bank", 
                     "statement_period": "01/2024 to 03/2024",
                     "average_monthly_income": 78000,
                     "monthly_income": 78000,
                     "confidence": 0.85,
                     "document_type": "Bank Statement",
-                    "note": "Fallback data - JSON parse failed"
+                    "processing_note": "Claude API responded but JSON parsing failed",
+                    "error_details": str(je)
                 }
         except Exception as e:
             logger.error(f"Bank statement processing error: {e}")
@@ -1068,7 +1071,9 @@ async def extract_bank_statement(
         
     except Exception as e:
         logger.error(f"Bank statement extraction failed: {e}")
-        # Return demo data instead of failing
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception details: {str(e)}")
+        # Return demo data with specific error information
         return {
             "success": True,
             "income_data": {
@@ -1079,7 +1084,8 @@ async def extract_bank_statement(
                 "monthly_income": 78000,
                 "confidence": 0.85,
                 "document_type": "Bank Statement",
-                "processing_note": "Demo mode - Claude API not configured"
+                "processing_note": f"Processing failed: {type(e).__name__}",
+                "error_details": str(e)
             }
         }
 
