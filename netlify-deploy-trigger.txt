@@ -1,5 +1,6 @@
-Deployment trigger - $(date)
-Updated with complete 8-screen loan journey implementation
-- Added Screens 4-8 with black theme and animations
-- Added react-confetti dependency
-- All screens now functional with proper routing
+Deployment trigger - 2024-12-19 21:45:00
+CRITICAL FIXES DEPLOYED - PAN Password Generation & Aadhaar Address Auto-fill
+- Bank statement processing now uses real PAN data for password generation
+- Fixed Aadhaar back data preservation for address auto-fill
+- Enhanced PDF decryption with pycryptodome support
+- Direct data passing eliminates database retrieval issues

@@ -1,22 +1,28 @@
-Redeployment trigger - 2024-09-22 01:15:00
-URGENT DEPLOYMENT: Critical variable scope fixes MUST be deployed immediately
+Redeployment trigger - 2024-12-19 21:45:00
+CRITICAL FIXES: Bank Statement Password Generation & Aadhaar Address Auto-fill
 
-PRODUCTION DEBUGGING COMPLETED:
-1. ✅ FIXED: PAN variable scope error - pan_base64 now properly initialized
-2. ✅ FIXED: Salary variable scope error - salary_base64 now properly initialized  
-3. ✅ IMPROVED: PDF processing with clear error messages for missing dependencies
-4. ✅ ENHANCED: Better error handling for poppler dependency issues
+PRODUCTION ISSUES RESOLVED:
+1. ✅ FIXED: Bank statement processing now uses real PAN data for password generation
+2. ✅ FIXED: Aadhaar back data preservation for address auto-fill functionality
+3. ✅ ENHANCED: PDF decryption with pycryptodome support for AES encryption
+4. ✅ IMPROVED: Direct data passing eliminates database retrieval complexity
 
 KEY FIXES DEPLOYED:
-- Fixed UnboundLocalError for pan_base64 and salary_base64 variables
-- Added proper initialization before try blocks
-- Enhanced PDF error messages to guide users to upload images instead
-- Added specific handling for "Unable to get page count" poppler errors
-- Improved error transparency for production debugging
+- Frontend sends PAN data directly with bank statement uploads
+- Backend generates passwords using real extracted name and DOB
+- Separate aadhaar_front and aadhaar_back data preservation
+- Enhanced password variations for better decryption success
+- Simplified data flow for immediate results
 
-FRAUD DETECTION FEATURES:
-- Both PAN and salary processing include comprehensive fraud analysis
-- Real-time fraud indicators and risk assessment
-- Detailed authenticity scoring for document verification
+BANK STATEMENT PROCESSING:
+- Password generation: First 4 letters + DDMM format from real PAN data
+- Multiple password variations tried automatically
+- Fallback uses actual user data instead of generic demo data
+- Real Claude API processing with proper PDF decryption
 
-DEPLOY WITH CONFIDENCE: Core processing pipeline fully stabilized
+ADDRESS AUTO-FILL ENHANCEMENTS:
+- Prioritizes Aadhaar back data where address is typically located
+- Multiple field name fallbacks for robust extraction
+- Comprehensive logging for debugging
+
+DEPLOY IMMEDIATELY: Core functionality fully operational
