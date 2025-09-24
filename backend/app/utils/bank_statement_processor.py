@@ -89,7 +89,8 @@ class BankStatementProcessor:
             day = date_match.group(1).zfill(2)
             month = date_match.group(2).zfill(2)
             
-            password = f"{name_letters}{day}{month}"
+            # Generate lowercase password as primary (most common format)
+            password = f"{name_letters.lower()}{day}{month}"
             logger.info(f"Generated password: {password} (showing full password for debugging)")
             logger.info(f"Password components: name_letters='{name_letters}', day='{day}', month='{month}'")
             
@@ -122,10 +123,9 @@ class BankStatementProcessor:
                 
                 if not decrypt_result:
                     logger.warning(f"Primary password failed: {password}")
-                    # Try alternative password formats
+                    # Try alternative password formats  
                     alt_passwords = [
-                        password.lower(),
-                        password.upper(),
+                        password.upper(),  # Try uppercase version
                         password + '0',  # Some banks add trailing zero
                         '0' + password,   # Some banks add leading zero
                         password + '00',  # Double zero
@@ -159,16 +159,29 @@ class BankStatementProcessor:
             # Extract text from all pages
             text_content = ""
             try:
+                logger.info(f"PDF has {len(pdf_reader.pages)} pages")
+                
+                if len(pdf_reader.pages) == 0:
+                    raise ValueError("PDF has no pages")
+                
                 for page_num in range(len(pdf_reader.pages)):
-                    page = pdf_reader.pages[page_num]
-                    page_text = page.extract_text()
-                    if page_text:
-                        text_content += page_text + "\n"
+                    logger.info(f"Processing page {page_num + 1}")
+                    try:
+                        page = pdf_reader.pages[page_num]
+                        page_text = page.extract_text()
+                        if page_text:
+                            text_content += page_text + "\n"
+                            logger.info(f"Extracted {len(page_text)} characters from page {page_num + 1}")
+                        else:
+                            logger.warning(f"No text found on page {page_num + 1}")
+                    except Exception as page_error:
+                        logger.error(f"Error processing page {page_num + 1}: {page_error}")
+                        continue
                 
                 if not text_content.strip():
                     raise ValueError("No text content found in PDF")
                 
-                logger.info(f"Extracted {len(text_content)} characters from PDF")
+                logger.info(f"Total extracted {len(text_content)} characters from PDF")
                 return text_content
             except Exception as e:
                 logger.error(f"Error extracting text from PDF: {e}")
