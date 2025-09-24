@@ -336,6 +336,7 @@ export default function DocumentsPage() {
               hasDob: dob,
               fullExtractedData: data 
             })
+            console.warn('💡 Bank statement processing without PAN data - will try database fallback or manual entry')
           }
         } catch (e) {
           console.warn('Could not parse extracted data for PAN info:', e)

@@ -1164,9 +1164,9 @@ async def process_protected_bank_statement(
             logger.warning("❌ Using demo PAN data - no real data available")
             pan_data = {
                 'name': 'ASHISH SHEKHAWAT',  # Use your actual name for testing
-                'date_of_birth': '23/09/1990'  # This should generate ASHI2309
+                'date_of_birth': '23/09/1995'  # This should generate ashi2309 (correct for test PDF)
             }
-            logger.info(f"📝 Demo password will be: ASHI2309")
+            logger.info(f"📝 Demo password will be: ashi2309")
         
         # Initialize bank statement processor
         processor = BankStatementProcessor()
