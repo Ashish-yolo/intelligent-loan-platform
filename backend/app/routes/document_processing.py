@@ -1117,6 +1117,7 @@ async def process_protected_bank_statement(
     try:
         logger.info(f"Processing password-protected bank statement: {bank_file.filename}")
         logger.info(f"Form data received: user_id={user_id}, pan_name={pan_name}, pan_dob={pan_dob}, salary_slip_net={salary_slip_net}")
+        logger.info(f"🔍 PAN data for password generation: name='{pan_name}', dob='{pan_dob}'")
         
         # Validate file
         if not bank_file.content_type or 'pdf' not in bank_file.content_type.lower():
@@ -1136,6 +1137,11 @@ async def process_protected_bank_statement(
                 'date_of_birth': pan_dob
             }
             logger.info(f"✅ Using PAN data from form: name='{pan_name}', dob='{pan_dob}'")
+            # Test password generation
+            from app.utils.bank_statement_processor import BankStatementProcessor
+            temp_processor = BankStatementProcessor()
+            test_password = temp_processor.generate_bank_password(pan_data)
+            logger.info(f"🔍 Generated password for testing: '{test_password}'")
         
         # Method 2: Try database retrieval as fallback
         elif user_id:

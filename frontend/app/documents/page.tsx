@@ -321,7 +321,14 @@ export default function DocumentsPage() {
           if (panData && panData.name && panData.dob) {
             formData.append('pan_name', panData.name)
             formData.append('pan_dob', panData.dob)
-            console.log('Added PAN data for password generation:', { name: panData.name, dob: panData.dob })
+            console.log('✅ Added PAN data for password generation:', { name: panData.name, dob: panData.dob })
+          } else {
+            console.error('❌ Missing PAN data for bank statement processing:', { 
+              panData, 
+              hasName: panData?.name, 
+              hasDob: panData?.dob,
+              fullExtractedData: data 
+            })
           }
         } catch (e) {
           console.warn('Could not parse extracted data for PAN info:', e)
