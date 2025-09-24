@@ -44,7 +44,7 @@ class BankStatementProcessor:
             'company credit', 'employer credit', 'corporate credit',
             
             # Common company types and suffixes
-            'ltd', 'limited', 'pvt ltd', 'private limited', 'corp', 'corporation',
+            'ltd', 'limited', 'pvt ltd', 'private limited', 'private', 'corp', 'corporation',
             'inc', 'incorporated', 'llp', 'llc', 'co', 'company',
             'technologies', 'tech', 'systems', 'solutions', 'services',
             'consulting', 'consultancy', 'software', 'infotech', 'info',
@@ -256,7 +256,7 @@ class BankStatementProcessor:
 
     def parse_transactions(self, raw_text: str) -> List[Dict[str, Any]]:
         """
-        Parse transaction data from PDF text content
+        Parse transaction data from PDF text content with enhanced multi-line support
         
         Args:
             raw_text: Raw text extracted from PDF
@@ -279,9 +279,11 @@ class BankStatementProcessor:
                 r'(\d{2}-\d{2}-\d{4})'   # DD-MM-YYYY
             ]
             
-            for line_num, line in enumerate(lines):
-                line = line.strip()
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
                 if not line:
+                    i += 1
                     continue
                 
                 # Look for lines containing dates (likely transaction lines)
@@ -293,10 +295,35 @@ class BankStatementProcessor:
                         break
                 
                 if date_found:
-                    # Extract transaction details
-                    transaction = self._parse_transaction_line(line, date_found)
+                    # Check for multi-line transactions
+                    full_transaction_text = line
+                    
+                    # Look ahead for continuation lines (like PRIVATE/amount pattern)
+                    j = i + 1
+                    while j < len(lines) and j < i + 3:  # Check next 2 lines max
+                        next_line = lines[j].strip()
+                        if not next_line:
+                            j += 1
+                            continue
+                            
+                        # If next line starts with common continuation patterns or has amount
+                        if (re.search(r'^(PRIVATE|LIMITED|LTD|CORP|BANK)', next_line) or 
+                            re.search(r'^\w+\/[\d,]+\.?\d*', next_line) or
+                            re.search(r'^[\d,]+\.?\d+\s+[\d,]+\.?\d+$', next_line)):
+                            full_transaction_text += " " + next_line
+                            j += 1
+                        else:
+                            break
+                    
+                    # Extract transaction details from combined text
+                    transaction = self._parse_transaction_line(full_transaction_text, date_found)
                     if transaction:
                         transactions.append(transaction)
+                    
+                    # Skip the processed continuation lines
+                    i = j
+                else:
+                    i += 1
             
             logger.info(f"Parsed {len(transactions)} transactions")
             return transactions
@@ -380,18 +407,48 @@ class BankStatementProcessor:
             return raw_text
 
     def _extract_amount(self, line: str) -> Optional[float]:
-        """Extract transaction amount from bank statement line (not balance)"""
+        """Extract transaction amount from bank statement line (enhanced for deposits)"""
         try:
             # Skip lines that are clearly not transactions
             if any(keyword in line.upper() for keyword in ['B/F', 'C/F', 'BALANCE FORWARD', 'BALANCE CARRIED']):
                 return None
-                
-            # Skip UPI/transfer lines that don't contain amounts (just have phone numbers/IDs)
-            if 'UPI/' in line.upper() and not re.search(r'\d+[,.]?\d*\s+(\d+,\d+\.\d+|CR|DR)', line):
-                return None
             
-            # For lines with clear transaction-balance pattern like: "description AMOUNT 0 BALANCE"
-            # Example: "05-08-2025CREDIT CA RD ATD/Auto Debit CC0xx2032 2,400.0 0 3,88,075.70"
+            # Enhanced patterns for different deposit types
+            
+            # 1. Multi-line NET BANKING deposits: "PRIVATE/3,83,269. 00  5,70,922.15"
+            private_deposit_match = re.search(r'PRIVATE/([0-9,]+\.?\d*)\s+\d+\s+([0-9,]+\.[0-9]{2})$', line)
+            if private_deposit_match:
+                deposit_amt = private_deposit_match.group(1).replace(',', '')
+                try:
+                    amount = float(deposit_amt)
+                    if amount >= 1000:  # Reasonable deposit amount
+                        return amount
+                except ValueError:
+                    pass
+            
+            # 2. UPI Credits with "V" indicator: "V5,000. 00  5,66,778.22"
+            upi_credit_match = re.search(r'V([0-9,]+\.?\d*)\s+\d+\s+([0-9,]+\.[0-9]{2})$', line)
+            if upi_credit_match:
+                credit_amt = upi_credit_match.group(1).replace(',', '')
+                try:
+                    amount = float(credit_amt)
+                    if 100 <= amount <= 1000000:  # Reasonable UPI credit range
+                        return amount
+                except ValueError:
+                    pass
+            
+            # 3. UPI Credits with different format: "10110,000. 00  5,76,778.22"
+            large_upi_match = re.search(r'(\d{3,}[0-9,]*\.?\d*)\s+\d+\s+([0-9,]+\.[0-9]{2})$', line)
+            if large_upi_match:
+                amount_str = large_upi_match.group(1).replace(',', '')
+                try:
+                    amount = float(amount_str)
+                    if 1000 <= amount <= 100000:  # Filter for reasonable transaction amounts
+                        return amount
+                except ValueError:
+                    pass
+            
+            # 4. Standard credit card pattern: "2,400.0 0 3,88,075.70"
             transaction_balance_match = re.search(r'([0-9,]+\.?\d*)\s+\d+\s+([0-9,]+\.[0-9]{2})$', line)
             if transaction_balance_match:
                 transaction_amt = transaction_balance_match.group(1).replace(',', '')
@@ -402,12 +459,14 @@ class BankStatementProcessor:
                 except ValueError:
                     pass
             
-            # Find all monetary amounts (with better patterns)
+            # 5. Standard amount patterns with enhanced detection
             amount_patterns = [
-                r'([0-9,]+\.[0-9]{1,2})\s*(CR|DR|CREDIT|DEBIT)?',  # Decimal amounts with optional CR/DR
-                r'([0-9,]+)\s*(CR|DR|CREDIT|DEBIT)',  # Integer amounts with CR/DR
+                r'([0-9,]+\.[0-9]{1,2})\s*(CR|DR|CREDIT|DEBIT)?',  # Decimal amounts
+                r'([0-9,]+)\s*(CR|DR|CREDIT|DEBIT)',  # Integer amounts with indicators
                 r'₹\s*([0-9,]+\.?\d*)',  # Amounts with rupee symbol
                 r'RS\.?\s*([0-9,]+\.?\d*)',  # Amounts with RS
+                # Enhanced pattern for multi-line deposits
+                r'/([0-9,]+\.?\d*)\s+\d+',  # Amount after slash (deposit format)
             ]
             
             all_amounts = []
@@ -420,8 +479,8 @@ class BankStatementProcessor:
                         clean_amount = amount_str.replace(',', '').strip()
                         if clean_amount and clean_amount.replace('.', '').isdigit():
                             amount = float(clean_amount)
-                            # Filter reasonable transaction amounts
-                            if 1 <= amount <= 1000000:
+                            # Filter reasonable transaction amounts (expanded range for deposits)
+                            if 1 <= amount <= 10000000:  # Up to 1 crore for large deposits
                                 all_amounts.append(amount)
                     except (ValueError, IndexError):
                         continue
@@ -436,19 +495,24 @@ class BankStatementProcessor:
             if len(unique_amounts) == 1:
                 return unique_amounts[0]
             
-            # Multiple amounts: prefer transaction over balance amounts
-            # Transaction amounts are typically smaller and come first in the line
-            transaction_amounts = [amt for amt in unique_amounts if amt < 100000]  # Less than 1 lakh
-            balance_amounts = [amt for amt in unique_amounts if amt >= 100000]     # 1 lakh or more
+            # Multiple amounts: enhanced logic for deposits
+            # Large amounts (>1L) could be legitimate deposits, not just balances
+            large_amounts = [amt for amt in unique_amounts if amt >= 100000]
+            medium_amounts = [amt for amt in unique_amounts if 1000 <= amt < 100000]
+            small_amounts = [amt for amt in unique_amounts if amt < 1000]
             
-            # Prefer transaction amounts
-            if transaction_amounts:
-                # Return the largest transaction amount (in case of multiple fees/charges)
-                return max(transaction_amounts)
+            # Priority: medium amounts (1K-1L) are most likely transactions
+            if medium_amounts:
+                return max(medium_amounts)
             
-            # If only balance amounts, return the smallest (most likely to be a transaction)
-            if balance_amounts:
-                return min(balance_amounts)
+            # For large amounts, if it's in a deposit context, it could be valid
+            if large_amounts and any(keyword in line.upper() for keyword in ['PRIVATE', 'NET BANKING', 'DEPOSIT', 'CREDIT']):
+                # Return the smallest large amount (more likely to be transaction vs balance)
+                return min(large_amounts)
+            
+            # Fallback to small amounts
+            if small_amounts:
+                return max(small_amounts)
             
             return None
             
