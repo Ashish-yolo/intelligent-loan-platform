@@ -31,15 +31,66 @@ class BankStatementProcessor:
     def __init__(self):
         """Initialize the processor with salary detection keywords"""
         self.salary_keywords = [
+            # Direct salary keywords
             'salary', 'sal', 'payroll', 'wages', 'stipend', 'pay', 'income',
             'credit salary', 'salary credit', 'sal cr', 'sal credit',
             'monthly sal', 'basic sal', 'net sal', 'gross sal',
             'emp sal', 'employee sal', 'staff sal', 'compensation',
             'remuneration', 'earnings', 'monthly pay', 'basic pay',
-            # Enhanced patterns for different transaction types
+            
+            # Transfer method keywords
             'neft', 'imps', 'rtgs', 'fund transfer', 'online transfer',
             'monthly credit', 'regular credit', 'recurring credit',
-            'company credit', 'employer credit', 'corporate credit'
+            'company credit', 'employer credit', 'corporate credit',
+            
+            # Common company types and suffixes
+            'ltd', 'limited', 'pvt ltd', 'private limited', 'corp', 'corporation',
+            'inc', 'incorporated', 'llp', 'llc', 'co', 'company',
+            'technologies', 'tech', 'systems', 'solutions', 'services',
+            'consulting', 'consultancy', 'software', 'infotech', 'info',
+            
+            # IT/Tech company patterns
+            'tcs', 'infosys', 'wipro', 'cognizant', 'hcl', 'tech mahindra',
+            'capgemini', 'accenture', 'ibm', 'microsoft', 'google', 'amazon',
+            'oracle', 'sap', 'cisco', 'dell', 'hp', 'intel', 'adobe',
+            'salesforce', 'vmware', 'citrix', 'nvidia', 'qualcomm',
+            
+            # Banking/Finance company patterns
+            'hdfc', 'icici', 'sbi', 'axis', 'kotak', 'yes bank', 'indusind',
+            'bajaj', 'reliance', 'aditya birla', 'tata', 'mahindra',
+            'jpmorgan', 'goldman sachs', 'morgan stanley', 'barclays',
+            'deutsche bank', 'standard chartered', 'citi', 'hsbc',
+            
+            # Consulting/Services company patterns  
+            'deloitte', 'pwc', 'kpmg', 'ey', 'mckinsey', 'bcg', 'bain',
+            'ernst young', 'pricewaterhouse', 'coopers', 'arthur andersen',
+            
+            # Manufacturing/Industrial company patterns
+            'maruti', 'hyundai', 'honda', 'toyota', 'ford', 'general motors',
+            'bajaj auto', 'hero motocorp', 'tvs', 'royal enfield',
+            'larsen toubro', 'bhel', 'ongc', 'ntpc', 'coal india',
+            
+            # Pharma/Healthcare company patterns
+            'sun pharma', 'dr reddy', 'cipla', 'lupin', 'biocon',
+            'aurobindo', 'cadila', 'glenmark', 'torrent pharma',
+            'pfizer', 'novartis', 'roche', 'johnson johnson',
+            
+            # E-commerce/Startups
+            'flipkart', 'amazon india', 'paytm', 'ola', 'uber', 'swiggy',
+            'zomato', 'byju', 'unacademy', 'phonepe', 'razorpay',
+            'freshworks', 'zoho', 'chargebee', 'clevertap',
+            
+            # Government/PSU patterns
+            'government', 'govt', 'public sector', 'psu', 'railway',
+            'indian oil', 'bharat petroleum', 'hindustan petroleum',
+            'air india', 'bsnl', 'mtnl', 'sail', 'gail',
+            
+            # Common employer abbreviations
+            'pvt', 'ltd', 'llp', 'inc', 'corp', 'co', 'grp', 'group',
+            
+            # Generic employment indicators
+            'employer', 'organization', 'office', 'workplace', 'job',
+            'employment', 'work', 'professional', 'career'
         ]
         
         # Common bank transaction patterns
@@ -509,24 +560,62 @@ class BankStatementProcessor:
         confidence = 0.0
         description_lower = description.lower()
         
-        # High confidence keywords
-        high_conf_keywords = ['salary', 'payroll', 'wages', 'sal credit']
-        for keyword in high_conf_keywords:
+        # Very high confidence keywords (direct salary indicators)
+        very_high_conf = ['salary', 'payroll', 'wages', 'sal credit', 'salary credit']
+        for keyword in very_high_conf:
             if keyword in description_lower:
-                confidence += 0.3
+                confidence += 0.4
+        
+        # High confidence keywords (company names - major employers)
+        major_companies = [
+            'tcs', 'infosys', 'wipro', 'cognizant', 'hcl', 'tech mahindra',
+            'accenture', 'capgemini', 'deloitte', 'pwc', 'kpmg', 'ey',
+            'hdfc', 'icici', 'sbi', 'axis', 'kotak', 'microsoft', 'google',
+            'amazon', 'oracle', 'ibm', 'adobe', 'salesforce'
+        ]
+        for company in major_companies:
+            if company in description_lower:
+                confidence += 0.35
+        
+        # Medium-high confidence (company types and other major brands)
+        med_high_conf = [
+            'ltd', 'limited', 'pvt ltd', 'private limited', 'corp', 'corporation',
+            'technologies', 'consulting', 'systems', 'solutions', 'services',
+            'tata', 'reliance', 'bajaj', 'mahindra', 'aditya birla'
+        ]
+        for keyword in med_high_conf:
+            if keyword in description_lower:
+                confidence += 0.25
         
         # Medium confidence keywords
-        med_conf_keywords = ['sal', 'pay', 'compensation', 'earnings']
+        med_conf_keywords = ['sal', 'pay', 'compensation', 'earnings', 'income']
         for keyword in med_conf_keywords:
             if keyword in description_lower:
                 confidence += 0.2
         
-        # Patterns that increase confidence
+        # Low-medium confidence (transfer methods with employment context)
+        transfer_methods = ['neft', 'imps', 'rtgs', 'fund transfer']
+        for method in transfer_methods:
+            if method in description_lower:
+                # Higher confidence if combined with other employment indicators
+                if any(term in description_lower for term in ['employee', 'emp', 'staff', 'employer']):
+                    confidence += 0.3
+                else:
+                    confidence += 0.15
+        
+        # Bonus patterns that increase confidence
         if re.search(r'monthly|recurring|regular', description_lower):
             confidence += 0.1
         
-        if re.search(r'employee|emp|staff', description_lower):
+        if re.search(r'employee|emp|staff|employer', description_lower):
             confidence += 0.1
+            
+        if re.search(r'office|workplace|organization', description_lower):
+            confidence += 0.1
+        
+        # Company suffix patterns
+        if re.search(r'\b(pvt|ltd|llp|inc|corp|co)\b', description_lower):
+            confidence += 0.15
         
         return min(confidence, 1.0)  # Cap at 1.0
 
