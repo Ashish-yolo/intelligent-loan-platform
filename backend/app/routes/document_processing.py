@@ -1223,7 +1223,7 @@ async def process_protected_bank_statement(
                 "monthly_income": 75000,
                 "confidence": 0.85,
                 "document_type": "Protected Bank Statement",
-                "processing_note": f"Processing failed, using demo data: {result.get('error', 'Unknown error')}",
+                "processing_note": f"UPDATED CODE RUNNING - Processing failed, using demo data: {result.get('error', 'Unknown error')}",
                 "advanced_analysis": False
             }
             
