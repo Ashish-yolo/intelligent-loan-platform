@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
-from app.routes import auth, applications, underwriting, policy, document_processing, fraud_validation
+from app.routes import auth, applications, underwriting, policy, document_processing, fraud_validation, approval_letter
 from app.services.supabase_service import supabase_service
 from app.services.claude_service import claude_service
 
@@ -103,6 +103,7 @@ app.include_router(underwriting.router, prefix="/api/underwriting", tags=["under
 app.include_router(policy.router, prefix="/api/policy", tags=["policy"])
 app.include_router(document_processing.router, prefix="/api/documents", tags=["document-processing"])
 app.include_router(fraud_validation.router, prefix="/api/fraud", tags=["fraud-validation"])
+app.include_router(approval_letter.router, prefix="/api/approval", tags=["approval-letter"])
 
 if __name__ == "__main__":
     import uvicorn
