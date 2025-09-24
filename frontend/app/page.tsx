@@ -139,6 +139,8 @@ export default function LandingPage() {
       if (response.access_token) {
         localStorage.setItem('token', response.access_token)
         localStorage.setItem('user', JSON.stringify(response.user))
+        // Store the selected loan amount from landing page
+        localStorage.setItem('selectedLoanAmount', loanAmount.toString())
         toast.success('Welcome! Redirecting to your application...')
         setTimeout(() => {
           router.push('/loan-requirements')

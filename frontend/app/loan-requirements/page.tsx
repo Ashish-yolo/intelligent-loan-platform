@@ -38,6 +38,16 @@ export default function LoanRequirementsPage() {
       router.push('/')
       return
     }
+    
+    // Load the selected loan amount from landing page if available
+    const selectedAmount = localStorage.getItem('selectedLoanAmount')
+    if (selectedAmount) {
+      const parsedAmount = parseInt(selectedAmount)
+      if (parsedAmount && parsedAmount > 0) {
+        setAmount(parsedAmount)
+        console.log(`✅ Loaded loan amount from landing page: ₹${parsedAmount.toLocaleString()}`)
+      }
+    }
   }, [router])
 
   const calculateEMI = (amount: number, tenure: number) => {

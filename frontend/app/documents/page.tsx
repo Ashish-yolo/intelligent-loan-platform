@@ -554,7 +554,7 @@ export default function DocumentsPage() {
         <div className="mt-6 bg-gray-800 bg-opacity-50 rounded-lg p-4 space-y-3 animate-fade-in">
           <h4 className="text-white font-medium">Extracted Information:</h4>
           {Object.entries(state.extractedData).map(([key, value], index) => (
-            key !== 'confidence' && value && (
+            key !== 'confidence' && key !== 'apiResponse' && key !== 'completeExtractedData' && value && (
               <div 
                 key={key}
                 className="flex justify-between items-center animate-fade-in"
