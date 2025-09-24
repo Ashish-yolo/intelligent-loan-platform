@@ -431,6 +431,7 @@ export default function DocumentsPage() {
       'aadhaar_front.address': finalData.aadhaar_front?.address
     })
     
+    console.log('🔍 STORING extractedData to localStorage:', JSON.stringify(finalData, null, 2))
     localStorage.setItem('extractedData', JSON.stringify(finalData))
 
     toast.success('All documents verified! Moving to next step...')

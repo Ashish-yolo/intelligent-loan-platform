@@ -173,6 +173,9 @@ export default function VerificationPage() {
         
         console.log('🔍 Checking all address sources:', addressSources)
         
+        // Additional debugging to see the complete data structure
+        console.log('🔍 FULL extractedData structure:', JSON.stringify(data, null, 2))
+        
         // Find the first non-empty address
         for (const { source, value } of addressSources) {
           if (value && typeof value === 'string' && value.trim() && value !== 'null') {
