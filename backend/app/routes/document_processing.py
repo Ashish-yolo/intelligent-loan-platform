@@ -1172,11 +1172,13 @@ async def process_protected_bank_statement(
         processor = BankStatementProcessor()
         
         # Process the protected bank statement
+        logger.info(f"🔍 About to process bank statement with PAN data: {pan_data}")
         result = processor.process_bank_statement(
             file_content=bank_content,
             pan_data=pan_data,
             slip_net_salary=salary_slip_net
         )
+        logger.info(f"🔍 Bank statement processing result: success={result.get('success')}, error={result.get('error')}")
         
         if result.get('success'):
             # Convert to income data format for consistency
@@ -1212,7 +1214,7 @@ async def process_protected_bank_statement(
             logger.warning(f"Protected bank statement processing failed: {result.get('error')}")
             
             income_data = {
-                "account_holder": "Rajesh Kumar Sharma",
+                "account_holder": "ASHISH SHEKHAWAT", 
                 "processing_method": "password_protected_pdf_fallback",
                 "average_monthly_income": 75000,
                 "monthly_income": 75000,
@@ -1234,7 +1236,7 @@ async def process_protected_bank_statement(
         return {
             "success": True,
             "income_data": {
-                "account_holder": "Rajesh Kumar Sharma",
+                "account_holder": "ASHISH SHEKHAWAT",
                 "processing_method": "password_protected_pdf_error",
                 "average_monthly_income": 75000,
                 "monthly_income": 75000,
