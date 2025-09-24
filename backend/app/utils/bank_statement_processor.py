@@ -35,7 +35,11 @@ class BankStatementProcessor:
             'credit salary', 'salary credit', 'sal cr', 'sal credit',
             'monthly sal', 'basic sal', 'net sal', 'gross sal',
             'emp sal', 'employee sal', 'staff sal', 'compensation',
-            'remuneration', 'earnings', 'monthly pay', 'basic pay'
+            'remuneration', 'earnings', 'monthly pay', 'basic pay',
+            # Enhanced patterns for different transaction types
+            'neft', 'imps', 'rtgs', 'fund transfer', 'online transfer',
+            'monthly credit', 'regular credit', 'recurring credit',
+            'company credit', 'employer credit', 'corporate credit'
         ]
         
         # Common bank transaction patterns
@@ -44,13 +48,19 @@ class BankStatementProcessor:
             r'rtgs.*cr', r'upi.*cr', r'online.*transfer.*cr'
         ]
         
-        # Amount extraction patterns
+        # Enhanced amount extraction patterns for various bank formats
         self.amount_patterns = [
+            # Traditional patterns
             r'₹\s*([0-9,]+\.?\d*)',
             r'rs\.?\s*([0-9,]+\.?\d*)',
             r'inr\s*([0-9,]+\.?\d*)',
             r'([0-9,]+\.?\d*)\s*cr',
-            r'([0-9,]+\.?\d*)\s*credit'
+            r'([0-9,]+\.?\d*)\s*credit',
+            # Enhanced patterns for spaced amounts
+            r'([0-9,]+\.?\d*)\s+([0-9,]+\.?\d*)\s*$',  # Columnar amounts at end of line
+            r'([0-9]+,\s*[0-9]+\.?\d*)',  # Spaced comma amounts like "5,71, 126.22"
+            r'([0-9,\s]+\.\d{2})',  # Any amount with decimal at end
+            r'([0-9,\s]+)',  # Any number sequence (fallback)
         ]
 
     def generate_bank_password(self, pan_data: Dict[str, str]) -> str:
@@ -205,13 +215,17 @@ class BankStatementProcessor:
         """
         try:
             transactions = []
-            lines = raw_text.split('\n')
             
-            # Common date patterns in bank statements
+            # Preprocess text to handle OCR spacing issues
+            processed_text = self._preprocess_text(raw_text)
+            lines = processed_text.split('\n')
+            
+            # Enhanced date patterns for various bank statement formats
             date_patterns = [
-                r'(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})',
+                r'(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})',  # DD/MM/YYYY, DD-MM-YYYY
                 r'(\d{1,2}\s+\w{3}\s+\d{2,4})',  # 15 Aug 2024
-                r'(\d{2}-\w{3}-\d{4})'  # 15-Aug-2024
+                r'(\d{2}-\w{3}-\d{4})',  # 15-Aug-2024
+                r'(\d{2}-\d{2}-\d{4})'   # DD-MM-YYYY
             ]
             
             for line_num, line in enumerate(lines):
@@ -280,16 +294,68 @@ class BankStatementProcessor:
             logger.debug(f"Error parsing transaction line: {str(e)}")
             return None
 
+    def _preprocess_text(self, raw_text: str) -> str:
+        """Preprocess OCR text to handle spacing issues"""
+        try:
+            # Fix common OCR spacing issues
+            text = raw_text
+            
+            # Fix spaced numbers in amounts
+            text = re.sub(r'(\d+),\s+(\d+)', r'\1,\2', text)  # "5,71, 126.22" -> "5,71,126.22"
+            text = re.sub(r'(\d+)\s+\.(\d+)', r'\1.\2', text)  # "126 .22" -> "126.22"
+            
+            # Fix common spaced words
+            common_words = {
+                'ACCOU NT': 'ACCOUNT',
+                'BALANC E': 'BALANCE', 
+                'WITHDR AWAL': 'WITHDRAWAL',
+                'DEPO SIT': 'DEPOSIT',
+                'AIRTE L': 'AIRTEL',
+                'PAYM ENT': 'PAYMENT',
+                'TRANSF ER': 'TRANSFER',
+                'SALA RY': 'SALARY',
+                'SAL ARY': 'SALARY',
+                'CREDI T': 'CREDIT',
+                'DEBI T': 'DEBIT'
+            }
+            
+            for spaced, correct in common_words.items():
+                text = text.replace(spaced, correct)
+            
+            return text
+            
+        except Exception as e:
+            logger.warning(f"Text preprocessing failed: {e}")
+            return raw_text
+
     def _extract_amount(self, line: str) -> Optional[float]:
-        """Extract amount from transaction line"""
+        """Extract amount from transaction line with enhanced parsing"""
+        # Look for amounts at the end of lines (most common in bank statements)
+        amounts_found = []
+        
         for pattern in self.amount_patterns:
-            match = re.search(pattern, line, re.IGNORECASE)
-            if match:
-                amount_str = match.group(1).replace(',', '')
-                try:
-                    return float(amount_str)
-                except ValueError:
-                    continue
+            matches = re.findall(pattern, line, re.IGNORECASE)
+            for match in matches:
+                if isinstance(match, tuple):
+                    # Handle tuple matches from complex patterns
+                    for submatch in match:
+                        if submatch.strip():
+                            amounts_found.append(submatch)
+                else:
+                    amounts_found.append(match)
+        
+        # Process found amounts
+        for amount_str in amounts_found:
+            try:
+                # Clean up amount string
+                clean_amount = amount_str.replace(',', '').replace(' ', '').strip()
+                if clean_amount and clean_amount.replace('.', '').isdigit():
+                    amount = float(clean_amount)
+                    if amount > 0:  # Only positive amounts
+                        return amount
+            except ValueError:
+                continue
+                
         return None
 
     def _determine_transaction_type(self, line: str) -> str:
