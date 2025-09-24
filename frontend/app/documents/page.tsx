@@ -401,14 +401,14 @@ export default function DocumentsPage() {
 
     // Store all extracted data including income
     // Use the COMPLETE backend response which includes combined + separate front/back data
-    let completeExtractedData = {}
+    let completeExtractedData: any = {}
     
     // Get the most recent API response which has the complete structure
-    if (aadhaarBackDoc.processed && aadhaarBackDoc.extractedData?.completeExtractedData) {
-      completeExtractedData = aadhaarBackDoc.extractedData.completeExtractedData
+    if (aadhaarBackDoc.processed && (aadhaarBackDoc.extractedData as any)?.completeExtractedData) {
+      completeExtractedData = (aadhaarBackDoc.extractedData as any).completeExtractedData
       console.log('Using complete backend response (back):', completeExtractedData)
-    } else if (aadhaarFrontDoc.processed && aadhaarFrontDoc.extractedData?.completeExtractedData) {
-      completeExtractedData = aadhaarFrontDoc.extractedData.completeExtractedData
+    } else if (aadhaarFrontDoc.processed && (aadhaarFrontDoc.extractedData as any)?.completeExtractedData) {
+      completeExtractedData = (aadhaarFrontDoc.extractedData as any).completeExtractedData
       console.log('Using complete backend response (front):', completeExtractedData)
     } else {
       // Fallback to simple aadhaar data if complete data not available
