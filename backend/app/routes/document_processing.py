@@ -1134,7 +1134,8 @@ async def process_protected_bank_statement(
         if pan_name and pan_dob:
             pan_data = {
                 'name': pan_name,
-                'date_of_birth': pan_dob
+                'date_of_birth': pan_dob,
+                'dob': pan_dob  # Also include 'dob' for compatibility
             }
             logger.info(f"✅ Using PAN data from form: name='{pan_name}', dob='{pan_dob}'")
             # Test password generation

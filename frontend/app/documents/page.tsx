@@ -318,15 +318,22 @@ export default function DocumentsPage() {
         try {
           const data = JSON.parse(extractedData)
           const panData = data.pan
-          if (panData && panData.name && panData.dob) {
-            formData.append('pan_name', panData.name)
-            formData.append('pan_dob', panData.dob)
-            console.log('✅ Added PAN data for password generation:', { name: panData.name, dob: panData.dob })
+          console.log('🔍 Full extracted data for bank statement:', data)
+          console.log('🔍 PAN data found:', panData)
+          
+          // Handle both 'dob' and 'date_of_birth' field names
+          const name = panData?.name
+          const dob = panData?.dob || panData?.date_of_birth
+          
+          if (panData && name && dob) {
+            formData.append('pan_name', name)
+            formData.append('pan_dob', dob)
+            console.log('✅ Added PAN data for password generation:', { name, dob })
           } else {
             console.error('❌ Missing PAN data for bank statement processing:', { 
               panData, 
-              hasName: panData?.name, 
-              hasDob: panData?.dob,
+              hasName: name, 
+              hasDob: dob,
               fullExtractedData: data 
             })
           }

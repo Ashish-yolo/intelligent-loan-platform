@@ -69,7 +69,9 @@ class BankStatementProcessor:
         """
         try:
             name = pan_data.get('name', '').strip().upper()
-            dob = pan_data.get('date_of_birth', '').strip()
+            # Handle both 'date_of_birth' and 'dob' field names
+            dob = pan_data.get('date_of_birth', '') or pan_data.get('dob', '')
+            dob = dob.strip() if dob else ''
             
             if not name or not dob:
                 raise ValueError("Name and date_of_birth are required")
