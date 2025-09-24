@@ -34,7 +34,7 @@ const parseAadhaarAddress = (address) => {
   console.log('Raw address input:', JSON.stringify(address))
   
   // Remove S/O, W/O, D/O prefixes and extract the actual address
-  let cleanAddress = address.toString().trim()
+  let cleanAddress = (address || '').toString().trim()
   const soMatch = cleanAddress.match(/^S\/O:\s*([^,]+),\s*(.+)$/)
   if (soMatch) {
     cleanAddress = soMatch[2] // Take everything after "S/O: Name,"
@@ -180,7 +180,7 @@ export default function VerificationPage() {
         for (const { source, value } of addressSources) {
           if (value && typeof value === 'string' && value.trim() && value !== 'null') {
             aadhaarAddress = value
-            console.log(`✅ Using address from ${source}: ${value.substring(0, 50)}...`)
+            console.log(`✅ Using address from ${source}: ${(value || '').substring(0, 50)}...`)
             break
           }
         }

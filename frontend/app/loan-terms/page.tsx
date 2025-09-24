@@ -172,15 +172,15 @@ export default function LoanTermsPage() {
           
           <div className="grid md:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-green-400">{formatCurrency(loanData.amount)}</div>
+              <div className="text-2xl font-bold text-green-400">{formatCurrency(loanData?.amount || 0)}</div>
               <div className="text-gray-400 text-sm">Loan Amount</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-400">{loanData.tenure} months</div>
+              <div className="text-2xl font-bold text-blue-400">{loanData?.tenure || 0} months</div>
               <div className="text-gray-400 text-sm">Tenure</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-400 capitalize">{loanData.purpose ? loanData.purpose.replace('_', ' ') : 'Personal Loan'}</div>
+              <div className="text-2xl font-bold text-purple-400 capitalize">{loanData?.purpose ? loanData.purpose.replace('_', ' ') : 'Personal Loan'}</div>
               <div className="text-gray-400 text-sm">Purpose</div>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function LoanTermsPage() {
             <div className="space-y-4">
               {(() => {
                 const offer = offers.find(o => o.id === selectedOffer)!
-                const principal = loanData.amount / loanData.tenure
+                const principal = (loanData?.amount || 0) / (loanData?.tenure || 1)
                 const interest = offer.emi - principal
                 
                 return (
@@ -304,7 +304,7 @@ export default function LoanTermsPage() {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Total Interest:</span>
-                        <span className="text-white">{formatCurrency(offer.totalAmount - loanData.amount)}</span>
+                        <span className="text-white">{formatCurrency(offer.totalAmount - (loanData?.amount || 0))}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Processing Fee:</span>

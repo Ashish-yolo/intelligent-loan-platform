@@ -780,7 +780,7 @@ export default function DocumentsPage() {
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Monthly Income:</span>
-                    <span className="text-white font-medium">₹{incomeData.monthly_income.toLocaleString()}</span>
+                    <span className="text-white font-medium">₹{(incomeData.monthly_income || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Source:</span>

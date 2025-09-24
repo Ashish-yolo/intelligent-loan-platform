@@ -180,7 +180,7 @@ export default function ApprovalPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             <div className="bg-black/30 rounded-xl p-4">
               <BanknotesIcon className="h-8 w-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-400">{formatCurrency(loanData.amount)}</div>
+              <div className="text-2xl font-bold text-green-400">{formatCurrency(loanData?.amount || 0)}</div>
               <div className="text-gray-400 text-sm">Loan Amount</div>
             </div>
             
@@ -196,7 +196,7 @@ export default function ApprovalPage() {
             </div>
             
             <div className="bg-black/30 rounded-xl p-4">
-              <div className="text-2xl font-bold text-yellow-400">{loanData.tenure}</div>
+              <div className="text-2xl font-bold text-yellow-400">{loanData?.tenure || 0}</div>
               <div className="text-gray-400 text-sm">Months</div>
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function ApprovalPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Interest:</span>
-                <span className="text-white">{formatCurrency(loanData.selectedOffer?.totalAmount - loanData.amount)}</span>
+                <span className="text-white">{formatCurrency((loanData.selectedOffer?.totalAmount || 0) - (loanData?.amount || 0))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">First EMI Date:</span>
