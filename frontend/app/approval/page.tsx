@@ -58,9 +58,67 @@ export default function ApprovalPage() {
     }).format(amount)
   }
 
-  const handleDownloadLetter = () => {
-    // In a real app, this would generate and download a PDF
-    alert('Approval letter download will be implemented with backend integration')
+  const handleDownloadLetter = async () => {
+    try {
+      console.log('🎯 Starting approval letter download...')
+      
+      // Collect all application data
+      const applicationData = {
+        extractedData: JSON.parse(localStorage.getItem('extractedData') || '{}'),
+        verificationData: JSON.parse(localStorage.getItem('verificationData') || '{}'),
+        loanRequirements: JSON.parse(localStorage.getItem('loanRequirements') || '{}'),
+        finalLoanTerms: JSON.parse(localStorage.getItem('finalLoanTerms') || '{}'),
+        salaryData: JSON.parse(localStorage.getItem('salaryData') || '{}'),
+        bankStatementData: JSON.parse(localStorage.getItem('bankStatementData') || '{}')
+      }
+      
+      console.log('📋 Application data collected:', {
+        hasExtracted: !!applicationData.extractedData,
+        hasVerification: !!applicationData.verificationData,
+        hasLoanReq: !!applicationData.loanRequirements,
+        hasFinalTerms: !!applicationData.finalLoanTerms
+      })
+      
+      // Call backend API to generate approval letter
+      const response = await fetch('/api/approval/download-approval-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(applicationData)
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to generate approval letter: ${response.statusText}`)
+      }
+      
+      // Get filename from response headers
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = 'Loan_Approval_Letter.pdf'
+      if (contentDisposition) {
+        const filenamePart = contentDisposition.split('filename=')[1]
+        if (filenamePart) {
+          filename = filenamePart.replace(/"/g, '')
+        }
+      }
+      
+      // Download the PDF
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+      
+      console.log('✅ Approval letter downloaded successfully')
+      
+    } catch (error) {
+      console.error('❌ Error downloading approval letter:', error)
+      alert(`Failed to download approval letter: ${error.message}`)
+    }
   }
 
   const handleShareSuccess = () => {
