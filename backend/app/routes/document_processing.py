@@ -1179,8 +1179,10 @@ async def process_protected_bank_statement(
             slip_net_salary=salary_slip_net
         )
         logger.info(f"🔍 Bank statement processing result: success={result.get('success')}, error={result.get('error')}")
+        logger.info(f"🔍 Full result object: {result}")
         
         if result.get('success'):
+            logger.info("✅ SUCCESS path - Bank statement processed successfully!")
             # Convert to income data format for consistency
             income_data = {
                 "account_holder": pan_data['name'],
