@@ -329,34 +329,81 @@ class BankStatementProcessor:
             return raw_text
 
     def _extract_amount(self, line: str) -> Optional[float]:
-        """Extract amount from transaction line with enhanced parsing"""
-        # Look for amounts at the end of lines (most common in bank statements)
-        amounts_found = []
-        
-        for pattern in self.amount_patterns:
-            matches = re.findall(pattern, line, re.IGNORECASE)
-            for match in matches:
-                if isinstance(match, tuple):
-                    # Handle tuple matches from complex patterns
-                    for submatch in match:
-                        if submatch.strip():
-                            amounts_found.append(submatch)
-                else:
-                    amounts_found.append(match)
-        
-        # Process found amounts
-        for amount_str in amounts_found:
-            try:
-                # Clean up amount string
-                clean_amount = amount_str.replace(',', '').replace(' ', '').strip()
-                if clean_amount and clean_amount.replace('.', '').isdigit():
-                    amount = float(clean_amount)
-                    if amount > 0:  # Only positive amounts
-                        return amount
-            except ValueError:
-                continue
+        """Extract transaction amount from bank statement line (not balance)"""
+        try:
+            # Skip lines that are clearly not transactions
+            if any(keyword in line.upper() for keyword in ['B/F', 'C/F', 'BALANCE FORWARD', 'BALANCE CARRIED']):
+                return None
                 
-        return None
+            # Skip UPI/transfer lines that don't contain amounts (just have phone numbers/IDs)
+            if 'UPI/' in line.upper() and not re.search(r'\d+[,.]?\d*\s+(\d+,\d+\.\d+|CR|DR)', line):
+                return None
+            
+            # For lines with clear transaction-balance pattern like: "description AMOUNT 0 BALANCE"
+            # Example: "05-08-2025CREDIT CA RD ATD/Auto Debit CC0xx2032 2,400.0 0 3,88,075.70"
+            transaction_balance_match = re.search(r'([0-9,]+\.?\d*)\s+\d+\s+([0-9,]+\.[0-9]{2})$', line)
+            if transaction_balance_match:
+                transaction_amt = transaction_balance_match.group(1).replace(',', '')
+                try:
+                    amount = float(transaction_amt)
+                    if 1 <= amount <= 500000:  # Reasonable transaction range
+                        return amount
+                except ValueError:
+                    pass
+            
+            # Find all monetary amounts (with better patterns)
+            amount_patterns = [
+                r'([0-9,]+\.[0-9]{1,2})\s*(CR|DR|CREDIT|DEBIT)?',  # Decimal amounts with optional CR/DR
+                r'([0-9,]+)\s*(CR|DR|CREDIT|DEBIT)',  # Integer amounts with CR/DR
+                r'₹\s*([0-9,]+\.?\d*)',  # Amounts with rupee symbol
+                r'RS\.?\s*([0-9,]+\.?\d*)',  # Amounts with RS
+            ]
+            
+            all_amounts = []
+            
+            for pattern in amount_patterns:
+                matches = re.findall(pattern, line, re.IGNORECASE)
+                for match in matches:
+                    amount_str = match[0] if isinstance(match, tuple) else match
+                    try:
+                        clean_amount = amount_str.replace(',', '').strip()
+                        if clean_amount and clean_amount.replace('.', '').isdigit():
+                            amount = float(clean_amount)
+                            # Filter reasonable transaction amounts
+                            if 1 <= amount <= 1000000:
+                                all_amounts.append(amount)
+                    except (ValueError, IndexError):
+                        continue
+            
+            if not all_amounts:
+                return None
+            
+            # Remove duplicates and sort
+            unique_amounts = sorted(set(all_amounts))
+            
+            # If single amount, return it
+            if len(unique_amounts) == 1:
+                return unique_amounts[0]
+            
+            # Multiple amounts: prefer transaction over balance amounts
+            # Transaction amounts are typically smaller and come first in the line
+            transaction_amounts = [amt for amt in unique_amounts if amt < 100000]  # Less than 1 lakh
+            balance_amounts = [amt for amt in unique_amounts if amt >= 100000]     # 1 lakh or more
+            
+            # Prefer transaction amounts
+            if transaction_amounts:
+                # Return the largest transaction amount (in case of multiple fees/charges)
+                return max(transaction_amounts)
+            
+            # If only balance amounts, return the smallest (most likely to be a transaction)
+            if balance_amounts:
+                return min(balance_amounts)
+            
+            return None
+            
+        except Exception as e:
+            logger.debug(f"Error extracting amount from line '{line}': {e}")
+            return None
 
     def _determine_transaction_type(self, line: str) -> str:
         """Determine if transaction is credit or debit"""
