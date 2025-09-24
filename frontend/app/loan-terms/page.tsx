@@ -180,7 +180,7 @@ export default function LoanTermsPage() {
               <div className="text-gray-400 text-sm">Tenure</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-400 capitalize">{loanData.purpose.replace('_', ' ')}</div>
+              <div className="text-2xl font-bold text-purple-400 capitalize">{loanData.purpose ? loanData.purpose.replace('_', ' ') : 'Personal Loan'}</div>
               <div className="text-gray-400 text-sm">Purpose</div>
             </div>
           </div>

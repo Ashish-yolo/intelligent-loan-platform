@@ -258,12 +258,12 @@ export default function VerificationPage() {
     }
   }
 
-  const formatPAN = (pan: string) => {
-    return pan.replace(/(\w{5})(\w{4})(\w)/, '$1****$3')
+  const formatPAN = (pan) => {
+    return pan ? pan.replace(/(\w{5})(\w{4})(\w)/, '$1****$3') : 'XXXXX****X'
   }
 
-  const formatAadhaar = (aadhaar: string) => {
-    return aadhaar.replace(/(\d{4})\s?(\d{4})\s?(\d{4})/, 'XXXX XXXX $3')
+  const formatAadhaar = (aadhaar) => {
+    return aadhaar ? aadhaar.replace(/(\d{4})\s?(\d{4})\s?(\d{4})/, 'XXXX XXXX $3') : 'XXXX XXXX XXXX'
   }
 
   const validateForm = () => {
@@ -532,7 +532,7 @@ export default function VerificationPage() {
                 
                 <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4">
                   <div className="text-lg font-semibold text-blue-400 capitalize">
-                    {incomeData.source?.replace('_', ' ') || 'Not specified'}
+                    {incomeData.source ? incomeData.source.replace('_', ' ') : 'Not specified'}
                   </div>
                   <div className="text-gray-400 text-sm">Income Source</div>
                 </div>

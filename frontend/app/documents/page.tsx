@@ -371,7 +371,7 @@ export default function DocumentsPage() {
         
         setIncomeData(income)
         localStorage.setItem('incomeData', JSON.stringify(income))
-        toast.success(`Income extracted from ${type.replace('_', ' ')}!`)
+        toast.success(`Income extracted from ${type ? type.replace('_', ' ') : 'document'}!`)
       } else {
         throw new Error('Could not extract income data')
       }
@@ -388,7 +388,7 @@ export default function DocumentsPage() {
       
       setIncomeData(income)
       localStorage.setItem('incomeData', JSON.stringify(income))
-      toast.success(`Income extracted from ${type.replace('_', ' ')}!`)
+      toast.success(`Income extracted from ${type ? type.replace('_', ' ') : 'document'}!`)
     } finally {
       setProcessingIncome(false)
     }
@@ -783,7 +783,7 @@ export default function DocumentsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Source:</span>
-                    <span className="text-white font-medium capitalize">{incomeData.source.replace('_', ' ')}</span>
+                    <span className="text-white font-medium capitalize">{incomeData.source ? incomeData.source.replace('_', ' ') : 'Unknown'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Confidence:</span>
