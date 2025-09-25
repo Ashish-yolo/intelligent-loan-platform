@@ -23,8 +23,11 @@ import toast from 'react-hot-toast'
 import { sendOTP, verifyOTP } from './lib/api'
 
 // Umoney Logo Component
-const UmoneyLogo = ({ className = "h-8" }) => (
-  <div className="flex items-center space-x-2 group cursor-pointer transition-transform duration-200 hover:scale-105">
+const UmoneyLogo = ({ className = "h-8", onClick }) => (
+  <div 
+    className="flex items-center space-x-2 group cursor-pointer transition-transform duration-200 hover:scale-105"
+    onClick={onClick}
+  >
     <div className="relative">
       <svg 
         className={`${className} w-auto text-blue-500`} 
@@ -177,6 +180,17 @@ export default function LandingPage() {
     setOtp('')
   }
 
+  const handleLogoClick = () => {
+    // Reset all states to show the calculator view (home page)
+    setShowForm(false)
+    setShowLogin(false)
+    setStep('phone')
+    setPhone('')
+    setOtp('')
+    setFetchingOtp(false)
+    setOtpReceived('')
+  }
+
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`
     if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`
@@ -213,21 +227,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <UmoneyLogo />
+            <UmoneyLogo onClick={handleLogoClick} />
             
-            {/* Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              <a href="#personal-loans" className="text-white hover:text-blue-400 transition-colors font-medium">Personal Loans</a>
-              <a href="#business-loans" className="text-gray-300 hover:text-white transition-colors">Business Loans</a>
-              <a href="#credit-cards" className="text-gray-300 hover:text-white transition-colors">Credit Cards</a>
+            {/* Navigation & Auth */}
+            <div className="flex items-center space-x-6">
               <a href="#calculator" className="text-gray-300 hover:text-white transition-colors">EMI Calculator</a>
-              <a href="#more" className="text-gray-300 hover:text-white transition-colors flex items-center">
-                More <ChevronDownIcon className="w-4 h-4 ml-1" />
-              </a>
-            </nav>
-            
-            {/* Auth Buttons */}
-            <div className="flex items-center space-x-4">
               <button 
                 onClick={handleLogin}
                 className="text-gray-300 hover:text-white transition-colors"
