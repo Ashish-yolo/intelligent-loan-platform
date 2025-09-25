@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CurrencyRupeeIcon, CalendarIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ArrowRightIcon, CurrencyRupeeIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 const TENURE_OPTIONS = [
@@ -14,19 +14,9 @@ const TENURE_OPTIONS = [
   { value: 24, label: '24 months', popular: true },
 ]
 
-const LOAN_PURPOSES = [
-  { value: 'personal', label: 'Personal Use', emoji: '👤' },
-  { value: 'medical', label: 'Medical Emergency', emoji: '🏥' },
-  { value: 'education', label: 'Education', emoji: '📚' },
-  { value: 'travel', label: 'Travel', emoji: '✈️' },
-  { value: 'wedding', label: 'Wedding', emoji: '💒' },
-  { value: 'home_improvement', label: 'Home Improvement', emoji: '🏠' },
-  { value: 'debt_consolidation', label: 'Debt Consolidation', emoji: '💳' },
-  { value: 'business', label: 'Business', emoji: '💼' },
-]
-
-export default function LoanRequirementsPage() {
-  const [amount, setAmount] = useState(100000)
+export default function LoanApprovedPage() {
+  const [approvedAmount, setApprovedAmount] = useState(500000) // Default approved amount
+  const [selectedAmount, setSelectedAmount] = useState(300000) // Amount user selects
   const [tenure, setTenure] = useState(12)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -39,20 +29,22 @@ export default function LoanRequirementsPage() {
       return
     }
     
-    // Load the selected loan amount from landing page if available
-    const selectedAmount = localStorage.getItem('selectedLoanAmount')
-    if (selectedAmount) {
-      const parsedAmount = parseInt(selectedAmount)
-      if (parsedAmount && parsedAmount > 0) {
-        setAmount(parsedAmount)
-        console.log(`✅ Loaded loan amount from landing page: ₹${parsedAmount.toLocaleString()}`)
+    // Get approved loan amount from localStorage or API
+    const storedApprovalData = localStorage.getItem('loanApprovalData')
+    if (storedApprovalData) {
+      const approvalData = JSON.parse(storedApprovalData)
+      if (approvalData.approvedAmount) {
+        setApprovedAmount(approvalData.approvedAmount)
+        // Set selected amount to 60% of approved amount initially
+        setSelectedAmount(Math.round(approvalData.approvedAmount * 0.6))
       }
     }
   }, [router])
 
   const calculateEMI = (amount: number, tenure: number) => {
-    const rate = 12.5 / 100 / 12 // Fixed 12.5% annual rate
-    const emi = (amount * rate * Math.pow(1 + rate, tenure)) / (Math.pow(1 + rate, tenure) - 1)
+    const annualRate = 12.5 // Fixed at 12.5%
+    const monthlyRate = annualRate / 100 / 12
+    const emi = (amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1)
     return Math.round(emi)
   }
 
@@ -64,26 +56,29 @@ export default function LoanRequirementsPage() {
     }).format(amount)
   }
 
-  const handleContinue = () => {
+  const handleProceed = () => {
     setLoading(true)
     
-    // Store the selections
-    localStorage.setItem('loanRequirements', JSON.stringify({
-      amount,
+    // Store the final loan selections
+    localStorage.setItem('finalLoanSelection', JSON.stringify({
+      approvedAmount,
+      selectedAmount,
       tenure,
-      estimatedEMI: calculateEMI(amount, tenure)
+      interestRate: 12.5,
+      estimatedEMI: calculateEMI(selectedAmount, tenure),
+      timestamp: Date.now()
     }))
 
-    toast.success('Requirements saved!')
+    toast.success('Loan details confirmed!')
     
     setTimeout(() => {
-      router.push('/motivation')
-    }, 1000)
+      router.push('/loan-agreement') // Next step would be loan agreement
+    }, 1500)
   }
 
-  const emi = calculateEMI(amount, tenure)
+  const emi = calculateEMI(selectedAmount, tenure)
   const totalAmount = emi * tenure
-  const totalInterest = totalAmount - amount
+  const totalInterest = totalAmount - selectedAmount
 
   return (
     <div className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
@@ -91,51 +86,66 @@ export default function LoanRequirementsPage() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-            <span>Step 2 of 8</span>
-            <span>Loan Requirements</span>
+            <span>Step 6 of 8</span>
+            <span>Loan Approved</span>
           </div>
           <div className="w-full bg-gray-800 rounded-full h-2">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: '25%' }}></div>
+            <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300" style={{ width: '75%' }}></div>
           </div>
         </div>
 
-        {/* Header */}
+        {/* Approval Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <CheckCircleIcon className="h-16 w-16 text-green-500" />
+          </div>
           <h1 className="text-3xl font-bold text-white mb-4">
-            Let's find your perfect loan
+            Congratulations! Loan Approved
           </h1>
           <p className="text-gray-300">
-            Based on your profile analysis, here are your personalized loan options
+            Based on your documents analysis, you're approved for up to{' '}
+            <span className="text-green-400 font-semibold">{formatCurrency(approvedAmount)}</span>
           </p>
         </div>
 
-        {/* Loan Amount */}
+        {/* Approved Amount Display */}
+        <div className="bg-gradient-to-r from-green-900 to-green-800 border border-green-700 rounded-xl p-6 mb-6">
+          <div className="text-center">
+            <div className="text-sm text-green-300 mb-2">Maximum Approved Amount</div>
+            <div className="text-4xl font-bold text-green-400 mb-2">
+              {formatCurrency(approvedAmount)}
+            </div>
+            <div className="text-green-300 text-sm">Interest Rate: 12.5% per annum</div>
+          </div>
+        </div>
+
+        {/* Loan Amount Selection */}
         <div className="bg-gray-900 bg-opacity-50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
           <label className="block text-lg font-medium text-white mb-4">
-            How much do you need?
+            How much would you like to borrow?
           </label>
           
           <div className="mb-6">
             <input
               type="range"
               min="50000"
-              max="2000000"
+              max={approvedAmount}
               step="10000"
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              value={selectedAmount}
+              onChange={(e) => setSelectedAmount(Number(e.target.value))}
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
             />
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <span>₹50K</span>
-              <span>₹20L</span>
+              <span>{formatCurrency(approvedAmount)}</span>
             </div>
           </div>
 
           <div className="text-center">
             <div className="text-4xl font-bold text-blue-400 mb-2">
-              {formatCurrency(amount)}
+              {formatCurrency(selectedAmount)}
             </div>
-            <div className="text-gray-400">Loan Amount</div>
+            <div className="text-gray-400">Selected Loan Amount</div>
           </div>
         </div>
 
@@ -169,12 +179,11 @@ export default function LoanRequirementsPage() {
           </div>
         </div>
 
-
-        {/* EMI Calculation */}
+        {/* Loan Summary */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-6 mb-8">
           <h3 className="text-lg font-semibold text-white mb-4">Your Loan Summary</h3>
           
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center mb-4">
             <div>
               <div className="text-2xl font-bold text-green-400">{formatCurrency(emi)}</div>
               <div className="text-gray-400 text-sm">Monthly EMI</div>
@@ -185,7 +194,18 @@ export default function LoanRequirementsPage() {
             </div>
           </div>
 
-          <div className="border-t border-gray-700 mt-4 pt-4">
+          <div className="grid grid-cols-2 gap-4 text-center mb-4">
+            <div>
+              <div className="text-lg font-bold text-yellow-400">12.5%</div>
+              <div className="text-gray-400 text-sm">Interest Rate</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-purple-400">{tenure} months</div>
+              <div className="text-gray-400 text-sm">Tenure</div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-700 pt-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-300">Total Amount to Pay:</span>
               <span className="text-xl font-bold text-white">{formatCurrency(totalAmount)}</span>
@@ -193,17 +213,17 @@ export default function LoanRequirementsPage() {
           </div>
         </div>
 
-        {/* Continue Button */}
+        {/* Proceed Button */}
         <button
-          onClick={handleContinue}
+          onClick={handleProceed}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
         >
           {loading ? (
             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           ) : (
             <>
-              <span>Continue</span>
+              <span>Proceed with Loan</span>
               <ArrowRightIcon className="h-5 w-5" />
             </>
           )}
@@ -211,7 +231,7 @@ export default function LoanRequirementsPage() {
 
         <div className="text-center mt-4">
           <p className="text-gray-400 text-sm">
-            No impact on your credit score • Secure & encrypted
+            Final loan terms • Secure & encrypted • Fixed interest rate
           </p>
         </div>
       </div>

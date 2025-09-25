@@ -248,14 +248,37 @@ export default function ProcessingPage() {
           setTimeout(() => {
             if (isProcessing) {
               setShowFinalAnimation(true)
+              
+              // Calculate approved loan amount based on income
+              const storedIncomeData = localStorage.getItem('incomeData')
+              let approvedAmount = 500000 // Default fallback
+              
+              if (storedIncomeData) {
+                try {
+                  const incomeData = JSON.parse(storedIncomeData)
+                  const monthlyIncome = incomeData.monthly_income || 75000
+                  // Approve 8x monthly income (conservative lending)
+                  approvedAmount = Math.min(monthlyIncome * 8, 2000000) // Cap at 20L
+                } catch (e) {
+                  console.error('Error parsing income data:', e)
+                }
+              }
+              
+              // Store approval data for the next page
+              localStorage.setItem('loanApprovalData', JSON.stringify({
+                approvedAmount,
+                approvalTimestamp: Date.now(),
+                underwritingScore: 'APPROVED'
+              }))
+              
               setTimeout(() => {
                 if (isProcessing) {
                   try {
-                    router.push('/loan-terms')
+                    router.push('/loan-approved')
                   } catch (error) {
                     console.error('Navigation error:', error)
                     // Fallback navigation
-                    window.location.href = '/loan-terms'
+                    window.location.href = '/loan-approved'
                   }
                 }
               }, 2000)
@@ -268,11 +291,11 @@ export default function ProcessingPage() {
         setTimeout(() => {
           if (isProcessing) {
             try {
-              router.push('/loan-terms')
+              router.push('/loan-approved')
             } catch (navError) {
               console.error('Navigation error:', navError)
               // Fallback navigation
-              window.location.href = '/loan-terms'
+              window.location.href = '/loan-approved'
             }
           }
         }, 1000)
