@@ -993,17 +993,17 @@ async def extract_bank_statement(
             "statement_period": "MM/YYYY to MM/YYYY",
             "salary_credits": [
                 {"date": "DD/MM/YYYY", "amount": 75000, "description": "SAL CREDIT or company name"},
-                {"date": "DD/MM/YYYY", "amount": 383269, "description": "CHEQ DIGITAL PRIVATE"},
+                {"date": "DD/MM/YYYY", "amount": 125000, "description": "CHEQ DIGITAL PRIVATE"},
                 {"date": "DD/MM/YYYY", "amount": 50000, "description": "TCS LIMITED NEFT"}
             ],
-            "total_salary_credits": 508269,
-            "average_monthly_income": 169423,
+            "total_salary_credits": 250000,
+            "average_monthly_income": 83333,
             "identified_employer": "Company name if found",
             "salary_frequency": "Monthly/Bi-weekly/etc",
             "confidence": 0.90,
             "document_type": "Bank Statement",
-            "monthly_income": 169423,
-            "analysis_notes": "Found 3 salary credits including NET BANKING from CHEQ DIGITAL PRIVATE"
+            "monthly_income": 83333,
+            "analysis_notes": "Found 3 salary credits including NET BANKING deposits"
         }
         """
         
