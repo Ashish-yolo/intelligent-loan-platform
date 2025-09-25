@@ -65,6 +65,7 @@ export default function LandingPage() {
   
   // Form state
   const [showForm, setShowForm] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState('phone')
@@ -169,6 +170,13 @@ export default function LandingPage() {
     setShowForm(true)
   }
 
+  const handleLogin = () => {
+    setShowLogin(true)
+    setStep('phone')
+    setPhone('')
+    setOtp('')
+  }
+
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`
     if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`
@@ -210,13 +218,26 @@ export default function LandingPage() {
             {/* Navigation */}
             <nav className="hidden md:flex space-x-8">
               <a href="#personal-loans" className="text-white hover:text-blue-400 transition-colors font-medium">Personal Loans</a>
+              <a href="#business-loans" className="text-gray-300 hover:text-white transition-colors">Business Loans</a>
+              <a href="#credit-cards" className="text-gray-300 hover:text-white transition-colors">Credit Cards</a>
               <a href="#calculator" className="text-gray-300 hover:text-white transition-colors">EMI Calculator</a>
+              <a href="#more" className="text-gray-300 hover:text-white transition-colors flex items-center">
+                More <ChevronDownIcon className="w-4 h-4 ml-1" />
+              </a>
             </nav>
             
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
-              <button className="text-gray-300 hover:text-white transition-colors">Login</button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">
+              <button 
+                onClick={handleLogin}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Login
+              </button>
+              <button 
+                onClick={handleLogin}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+              >
                 Sign Up
               </button>
             </div>
@@ -260,7 +281,132 @@ export default function LandingPage() {
       {/* Loan Calculator Widget */}
       <section id="calculator" className="pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {!showForm ? (
+          {showLogin ? (
+            /* Login Form */
+            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-700 max-w-md mx-auto">
+              {step === 'phone' && (
+                <>
+                  <h3 className="text-2xl font-bold text-white mb-6 text-center">
+                    Welcome Back
+                  </h3>
+                  <div>
+                    <label htmlFor="loginPhone" className="block text-sm font-medium text-gray-300 mb-2">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="loginPhone"
+                        name="loginPhone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="Enter your phone number"
+                        maxLength={10}
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-400 text-sm">+91</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSendOTP}
+                    disabled={loading}
+                    className="w-full mt-6 flex justify-center py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    {loading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      'Send OTP'
+                    )}
+                  </button>
+                  <div className="mt-4 text-center">
+                    <button 
+                      onClick={() => setShowLogin(false)}
+                      className="text-gray-400 hover:text-white text-sm"
+                    >
+                      Back to Calculator
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {step === 'otp' && (
+                <>
+                  <h3 className="text-2xl font-bold text-white mb-6 text-center">
+                    Verify Your Number
+                  </h3>
+                  
+                  {/* Fetching OTP Message */}
+                  {fetchingOtp && (
+                    <div className="bg-blue-600 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-4 mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-blue-300 font-medium">Fetching OTP...</span>
+                      </div>
+                      <p className="text-blue-200 text-sm mt-1">Please wait while we retrieve your OTP</p>
+                    </div>
+                  )}
+                  
+                  {/* OTP Success Message */}
+                  {otpReceived && !fetchingOtp && (
+                    <div className="bg-green-600 bg-opacity-20 border border-green-500 border-opacity-30 rounded-lg p-4 mb-4">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircleIcon className="w-5 h-5 text-green-400" />
+                        <span className="text-green-300 font-medium">OTP Retrieved Successfully!</span>
+                      </div>
+                      <p className="text-green-200 text-sm mt-1">Your OTP has been auto-filled below</p>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <label htmlFor="loginOtp" className="block text-sm font-medium text-gray-300 mb-2">
+                      Enter OTP
+                    </label>
+                    <input
+                      id="loginOtp"
+                      name="loginOtp"
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className={`w-full px-4 py-3 bg-gray-800 border ${
+                        otpReceived && otp === otpReceived 
+                          ? 'border-green-500 ring-1 ring-green-500' 
+                          : 'border-gray-600'
+                      } rounded-lg text-white placeholder-gray-400 text-center text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                      placeholder="000000"
+                      maxLength={6}
+                      disabled={fetchingOtp}
+                    />
+                    <p className="mt-2 text-xs text-gray-400 text-center">
+                      OTP sent to +91 {phone}
+                    </p>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setStep('phone')}
+                      className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleVerifyOTP}
+                      disabled={loading}
+                      className="flex-1 py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      ) : (
+                        'Login'
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : !showForm ? (
             <div className="bg-gray-900 rounded-2xl p-8 lg:p-12 border border-gray-700 shadow-2xl">
               <h2 className="text-2xl font-bold text-white mb-8 text-center">Personal Loan Calculator</h2>
               
