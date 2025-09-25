@@ -80,7 +80,11 @@ export default function ApprovalPage() {
       })
       
       // Call backend API to generate approval letter
-      const response = await fetch('/api/approval/download-approval-pdf', {
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://intelligent-loan-platform.onrender.com' 
+        : 'http://localhost:8000'
+      
+      const response = await fetch(`${baseUrl}/api/approval/download-approval-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
