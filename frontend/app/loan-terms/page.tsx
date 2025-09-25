@@ -31,6 +31,9 @@ export default function LoanTermsPage() {
   const [loading, setLoading] = useState(false)
   const [loanData, setLoanData] = useState<any>(null)
   const [offers, setOffers] = useState<LoanOffer[]>([])
+  const [customInterestRate, setCustomInterestRate] = useState<number>(10.5)
+  const [customTenure, setCustomTenure] = useState<number>(12)
+  const [isCalculatorMode, setIsCalculatorMode] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export default function LoanTermsPage() {
     if (requirements) {
       const data = JSON.parse(requirements)
       setLoanData(data)
+      setCustomTenure(data.tenure || 12)
       generateOffers(data)
     } else {
       router.push('/loan-requirements')
@@ -270,55 +274,210 @@ export default function LoanTermsPage() {
           ))}
         </div>
 
-        {/* EMI Calculator */}
+        {/* Interactive EMI Calculator */}
         <div className="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-6 mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <CalculatorIcon className="h-6 w-6 text-purple-400" />
-            <h3 className="text-lg font-semibold text-white">EMI Breakdown</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <CalculatorIcon className="h-6 w-6 text-purple-400" />
+              <h3 className="text-lg font-semibold text-white">EMI Calculator</h3>
+            </div>
+            <button
+              onClick={() => setIsCalculatorMode(!isCalculatorMode)}
+              className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200"
+            >
+              {isCalculatorMode ? 'View Breakdown' : 'Customize EMI'}
+            </button>
           </div>
           
-          {selectedOffer && (
-            <div className="space-y-4">
-              {(() => {
-                const offer = offers.find(o => o.id === selectedOffer)!
-                const principal = (loanData?.amount || 0) / (loanData?.tenure || 1)
-                const interest = offer.emi - principal
-                
-                return (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Principal per month:</span>
-                        <span className="text-white">{formatCurrency(principal)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Interest per month:</span>
-                        <span className="text-white">{formatCurrency(interest)}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-gray-700 pt-2">
-                        <span className="text-gray-300 font-medium">Total EMI:</span>
-                        <span className="text-green-400 font-bold text-lg">{formatCurrency(offer.emi)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Total Interest:</span>
-                        <span className="text-white">{formatCurrency(offer.totalAmount - (loanData?.amount || 0))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Processing Fee:</span>
-                        <span className="text-white">{formatCurrency(offer.processingFee)}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-gray-700 pt-2">
-                        <span className="text-gray-300 font-medium">Total Payable:</span>
-                        <span className="text-blue-400 font-bold text-lg">{formatCurrency(offer.totalAmount + offer.processingFee)}</span>
-                      </div>
+          {isCalculatorMode ? (
+            <div className="space-y-6">
+              {/* Calculator Controls */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Interest Rate (% p.a.)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="8"
+                      max="18"
+                      step="0.25"
+                      value={customInterestRate}
+                      onChange={(e) => setCustomInterestRate(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>8%</span>
+                      <span className="text-white font-medium">{customInterestRate}%</span>
+                      <span>18%</span>
                     </div>
                   </div>
-                )
-              })()}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Tenure (months)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="6"
+                      max="84"
+                      step="6"
+                      value={customTenure}
+                      onChange={(e) => setCustomTenure(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>6m</span>
+                      <span className="text-white font-medium">{customTenure}m ({Math.round(customTenure/12*10)/10}y)</span>
+                      <span>84m</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom EMI Calculation */}
+              <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4 emi-highlight">
+                <div className="grid md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-400">
+                      {formatCurrency(calculateEMI(loanData?.amount || 0, customInterestRate, customTenure))}
+                    </div>
+                    <div className="text-gray-400 text-sm">Monthly EMI</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-400">
+                      {formatCurrency(calculateEMI(loanData?.amount || 0, customInterestRate, customTenure) * customTenure)}
+                    </div>
+                    <div className="text-gray-400 text-sm">Total Amount</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-400">
+                      {formatCurrency((calculateEMI(loanData?.amount || 0, customInterestRate, customTenure) * customTenure) - (loanData?.amount || 0))}
+                    </div>
+                    <div className="text-gray-400 text-sm">Total Interest</div>
+                  </div>
+                </div>
+                
+                {/* Comparison with original terms */}
+                {(customInterestRate !== 10.5 || customTenure !== (loanData?.tenure || 12)) && (
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <div className="text-xs text-gray-400 mb-2">Comparison with original offer:</div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-300">EMI Change:</span>
+                      <span className={`font-medium ${
+                        calculateEMI(loanData?.amount || 0, customInterestRate, customTenure) < 
+                        calculateEMI(loanData?.amount || 0, 10.5, loanData?.tenure || 12)
+                          ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {calculateEMI(loanData?.amount || 0, customInterestRate, customTenure) < 
+                         calculateEMI(loanData?.amount || 0, 10.5, loanData?.tenure || 12) ? '↓' : '↑'} 
+                        {formatCurrency(Math.abs(
+                          calculateEMI(loanData?.amount || 0, customInterestRate, customTenure) - 
+                          calculateEMI(loanData?.amount || 0, 10.5, loanData?.tenure || 12)
+                        ))}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tenure Options */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">Quick Tenure Selection:</label>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {[12, 18, 24, 36, 48, 60].map((months) => (
+                    <button
+                      key={months}
+                      onClick={() => setCustomTenure(months)}
+                      className={`py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        customTenure === months
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      {months}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Apply Custom Terms Button */}
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => {
+                    // Create custom offer based on current calculations
+                    const customEMI = calculateEMI(loanData?.amount || 0, customInterestRate, customTenure)
+                    const customOffer: LoanOffer = {
+                      id: 'custom',
+                      bankName: 'Custom Terms',
+                      interestRate: customInterestRate,
+                      processingFee: Math.round((loanData?.amount || 0) * 0.015),
+                      emi: customEMI,
+                      totalAmount: customEMI * customTenure,
+                      features: ['Custom interest rate', 'Flexible tenure', 'Personalized terms'],
+                      recommended: false,
+                      fastApproval: false
+                    }
+                    
+                    // Update offers with custom terms
+                    setOffers(prev => [customOffer, ...prev.filter(o => o.id !== 'custom')])
+                    setSelectedOffer('custom')
+                    setIsCalculatorMode(false)
+                    toast.success('Custom terms applied! Review your personalized offer below.')
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  Apply Custom Terms
+                </button>
+              </div>
             </div>
+          ) : (
+            selectedOffer && (
+              <div className="space-y-4">
+                {(() => {
+                  const offer = offers.find(o => o.id === selectedOffer)!
+                  const principal = (loanData?.amount || 0) / (loanData?.tenure || 1)
+                  const interest = offer.emi - principal
+                  
+                  return (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Principal per month:</span>
+                          <span className="text-white">{formatCurrency(principal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Interest per month:</span>
+                          <span className="text-white">{formatCurrency(interest)}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-700 pt-2">
+                          <span className="text-gray-300 font-medium">Total EMI:</span>
+                          <span className="text-green-400 font-bold text-lg">{formatCurrency(offer.emi)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Total Interest:</span>
+                          <span className="text-white">{formatCurrency(offer.totalAmount - (loanData?.amount || 0))}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Processing Fee:</span>
+                          <span className="text-white">{formatCurrency(offer.processingFee)}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-700 pt-2">
+                          <span className="text-gray-300 font-medium">Total Payable:</span>
+                          <span className="text-blue-400 font-bold text-lg">{formatCurrency(offer.totalAmount + offer.processingFee)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            )
           )}
         </div>
 
