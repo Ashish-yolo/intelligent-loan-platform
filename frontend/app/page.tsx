@@ -295,21 +295,140 @@ export default function LandingPage() {
                   </div>
                 </div>
 
+                {/* Interest Rate Slider */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="text-lg font-semibold text-white">
+                      Interest Rate
+                    </label>
+                    <span className="text-2xl font-bold text-green-400">{interestRate}% p.a</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="10.99"
+                      max="24"
+                      step="0.25"
+                      value={interestRate}
+                      onChange={(e) => setInterestRate(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-sm text-gray-400 mt-2">
+                      <span>10.99%</span>
+                      <span>24%</span>
+                    </div>
+                  </div>
+                </div>
 
-                {/* EMI Display */}
-                <div className="bg-gray-800 rounded-xl p-6 border border-gray-600">
-                  <div className="grid md:grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-gray-400 text-sm">Monthly EMI</p>
-                      <p className="text-2xl font-bold text-green-400">₹{emi.toLocaleString()}</p>
+                {/* Tenure Selection */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="text-lg font-semibold text-white">
+                      Loan Tenure
+                    </label>
+                    <span className="text-2xl font-bold text-purple-400">{tenure} months</span>
+                  </div>
+                  
+                  {/* Tenure Slider */}
+                  <div className="relative mb-4">
+                    <input
+                      type="range"
+                      min="6"
+                      max="60"
+                      step="6"
+                      value={tenure}
+                      onChange={(e) => setTenure(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-sm text-gray-400 mt-2">
+                      <span>6m</span>
+                      <span>60m</span>
                     </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Interest Rate</p>
-                      <p className="text-xl font-semibold text-white">{interestRate}% - 24% p.a</p>
+                  </div>
+
+                  {/* Quick Tenure Selection Buttons */}
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    {[12, 18, 24, 36, 48, 60].map((months) => (
+                      <button
+                        key={months}
+                        onClick={() => setTenure(months)}
+                        className={`tenure-button py-2 px-3 rounded-lg text-sm font-medium ${
+                          tenure === months
+                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500 shadow-opacity-25 active'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                        }`}
+                      >
+                        {months}m
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+
+                {/* EMI Display - Enhanced */}
+                <div className="bg-gradient-to-r from-gray-800 via-gray-800 to-gray-800 rounded-xl p-6 border-2 border-gray-600 shadow-2xl">
+                  <h3 className="text-lg font-semibold text-white mb-4 text-center">Your EMI Breakdown</h3>
+                  
+                  {/* Main EMI Stats */}
+                  <div className="grid md:grid-cols-3 gap-6 text-center mb-6">
+                    <div className="emi-card bg-gradient-to-br from-green-600 via-green-600 to-green-700 rounded-lg p-4 transform hover:scale-105 transition-all duration-300">
+                      <p className="text-green-100 text-sm mb-1">Monthly EMI</p>
+                      <p key={`emi-${emi}`} className="emi-value text-3xl font-bold text-white">₹{emi.toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Loan Tenure</p>
-                      <p className="text-xl font-semibold text-white">{tenure} months</p>
+                    <div className="emi-card bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700 rounded-lg p-4 transform hover:scale-105 transition-all duration-300">
+                      <p className="text-blue-100 text-sm mb-1">Total Amount</p>
+                      <p key={`total-${emi * tenure}`} className="emi-value text-2xl font-bold text-white">₹{(emi * tenure).toLocaleString()}</p>
+                    </div>
+                    <div className="emi-card bg-gradient-to-br from-purple-600 via-purple-600 to-purple-700 rounded-lg p-4 transform hover:scale-105 transition-all duration-300">
+                      <p className="text-purple-100 text-sm mb-1">Total Interest</p>
+                      <p key={`interest-${((emi * tenure) - loanAmount)}`} className="emi-value text-2xl font-bold text-white">₹{((emi * tenure) - loanAmount).toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Additional Details */}
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between py-2 border-b border-gray-700">
+                      <span className="text-gray-400">Principal Amount:</span>
+                      <span className="text-white font-medium">₹{loanAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-700">
+                      <span className="text-gray-400">Interest Rate:</span>
+                      <span className="text-white font-medium">{interestRate}% p.a</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-700">
+                      <span className="text-gray-400">Loan Tenure:</span>
+                      <span className="text-white font-medium">{tenure} months ({(tenure/12).toFixed(1)} years)</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-700">
+                      <span className="text-gray-400">Processing Fee:</span>
+                      <span className="text-green-400 font-medium">₹0 (Waived)</span>
+                    </div>
+                  </div>
+
+                  {/* Interest vs Principal Visualization */}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-300 mb-3">Payment Breakdown</h4>
+                    <div className="flex rounded-lg overflow-hidden h-3">
+                      <div 
+                        className="bg-blue-500 transition-all duration-500"
+                        style={{ width: `${(loanAmount / (emi * tenure)) * 100}%` }}
+                        title={`Principal: ₹${loanAmount.toLocaleString()}`}
+                      ></div>
+                      <div 
+                        className="bg-orange-500 transition-all duration-500"
+                        style={{ width: `${(((emi * tenure) - loanAmount) / (emi * tenure)) * 100}%` }}
+                        title={`Interest: ₹${((emi * tenure) - loanAmount).toLocaleString()}`}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-2">
+                      <span className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        Principal (₹{loanAmount.toLocaleString()})
+                      </span>
+                      <span className="flex items-center">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                        Interest (₹{((emi * tenure) - loanAmount).toLocaleString()})
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -730,28 +849,103 @@ export default function LandingPage() {
       </section>
 
       <style jsx>{`
+        .slider {
+          background: linear-gradient(to right, #374151 0%, #4b5563 50%, #374151 100%);
+          outline: none;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+        }
+        
+        .slider:hover {
+          background: linear-gradient(to right, #4b5563 0%, #6b7280 50%, #4b5563 100%);
+        }
+        
         .slider::-webkit-slider-thumb {
           appearance: none;
-          height: 24px;
-          width: 24px;
+          height: 28px;
+          width: 28px;
           border-radius: 50%;
-          background: #3b82f6;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
           cursor: pointer;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 4px rgba(59, 130, 246, 0.2);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          transition: all 0.3s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6), 0 0 0 6px rgba(59, 130, 246, 0.3);
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
         }
         
         .slider::-moz-range-thumb {
-          height: 24px;
-          width: 24px;
+          height: 28px;
+          width: 28px;
           border-radius: 50%;
-          background: #3b82f6;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
           cursor: pointer;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 4px rgba(59, 130, 246, 0.2);
+          transition: all 0.3s ease;
+        }
+        
+        .slider::-moz-range-thumb:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6), 0 0 0 6px rgba(59, 130, 246, 0.3);
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+        
+        .slider::-moz-range-track {
+          background: linear-gradient(to right, #374151 0%, #4b5563 50%, #374151 100%);
+          height: 12px;
+          border-radius: 8px;
           border: none;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
         }
 
         .font-inter {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Enhanced button animations */
+        .tenure-button {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tenure-button:hover {
+          transform: translateY(-2px);
+        }
+        
+        .tenure-button.active {
+          animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+          }
+        }
+        
+        /* EMI card animations */
+        .emi-card {
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .emi-value {
+          animation: countUp 0.8s ease-out;
+        }
+        
+        @keyframes countUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>
