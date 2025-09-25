@@ -210,12 +210,7 @@ export default function LandingPage() {
             {/* Navigation */}
             <nav className="hidden md:flex space-x-8">
               <a href="#personal-loans" className="text-white hover:text-blue-400 transition-colors font-medium">Personal Loans</a>
-              <a href="#business-loans" className="text-gray-300 hover:text-white transition-colors">Business Loans</a>
-              <a href="#credit-cards" className="text-gray-300 hover:text-white transition-colors">Credit Cards</a>
               <a href="#calculator" className="text-gray-300 hover:text-white transition-colors">EMI Calculator</a>
-              <a href="#more" className="text-gray-300 hover:text-white transition-colors flex items-center">
-                More <ChevronDownIcon className="w-4 h-4 ml-1" />
-              </a>
             </nav>
             
             {/* Auth Buttons */}
