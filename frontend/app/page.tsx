@@ -63,8 +63,8 @@ export default function LandingPage() {
   // Calculator state
   const [loanAmount, setLoanAmount] = useState(200000)
   const [emi, setEmi] = useState(0)
-  const interestRate = 10.99 // Fixed interest rate
-  const tenure = 12 // Fixed tenure in months
+  const [interestRate, setInterestRate] = useState(12.99)
+  const [tenure, setTenure] = useState(24)
   
   // Form state
   const [showForm, setShowForm] = useState(false)
@@ -89,11 +89,11 @@ export default function LandingPage() {
     return Math.round(emi)
   }
 
-  // Update EMI when loan amount changes
+  // Update EMI when inputs change
   useEffect(() => {
     const newEmi = calculateEMI(loanAmount, interestRate, tenure)
     setEmi(newEmi)
-  }, [loanAmount])
+  }, [loanAmount, interestRate, tenure])
 
   const handleSendOTP = async () => {
     if (!phone || phone.length < 10) {
@@ -171,6 +171,13 @@ export default function LandingPage() {
 
   const handleCheckOffers = () => {
     setShowForm(true)
+    // Auto-scroll to the form after a brief delay to allow state to update
+    setTimeout(() => {
+      const formElement = document.querySelector('#offer-form')
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
   }
 
   const handleLogin = () => {
@@ -231,7 +238,6 @@ export default function LandingPage() {
             
             {/* Navigation & Auth */}
             <div className="flex items-center space-x-6">
-              <a href="#calculator" className="text-gray-300 hover:text-white transition-colors">EMI Calculator</a>
               <button 
                 onClick={handleLogin}
                 className="text-gray-300 hover:text-white transition-colors"
@@ -440,16 +446,73 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Fixed Interest Rate Display */}
-                <div className="text-center bg-gray-800 rounded-xl p-4">
-                  <div className="text-sm text-gray-400 mb-1">Interest Rate</div>
-                  <div className="text-2xl font-bold text-green-400">{interestRate}% p.a</div>
+                {/* Interest Rate Slider */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="text-lg font-semibold text-white">
+                      Interest Rate
+                    </label>
+                    <span className="text-2xl font-bold text-green-400">{interestRate}% p.a</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="10.99"
+                      max="24"
+                      step="0.25"
+                      value={interestRate}
+                      onChange={(e) => setInterestRate(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-sm text-gray-400 mt-2">
+                      <span>10.99%</span>
+                      <span>24%</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Fixed Tenure Display */}
-                <div className="text-center bg-gray-800 rounded-xl p-4">
-                  <div className="text-sm text-gray-400 mb-1">Loan Tenure</div>
-                  <div className="text-2xl font-bold text-purple-400">{tenure} months</div>
+                {/* Tenure Selection */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="text-lg font-semibold text-white">
+                      Loan Tenure
+                    </label>
+                    <span className="text-2xl font-bold text-purple-400">{tenure} months</span>
+                  </div>
+                  
+                  {/* Tenure Slider */}
+                  <div className="relative mb-4">
+                    <input
+                      type="range"
+                      min="6"
+                      max="60"
+                      step="6"
+                      value={tenure}
+                      onChange={(e) => setTenure(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-sm text-gray-400 mt-2">
+                      <span>6m</span>
+                      <span>60m</span>
+                    </div>
+                  </div>
+
+                  {/* Quick Tenure Selection Buttons */}
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    {[12, 18, 24, 36, 48, 60].map((months) => (
+                      <button
+                        key={months}
+                        onClick={() => setTenure(months)}
+                        className={`tenure-button py-2 px-3 rounded-lg text-sm font-medium ${
+                          tenure === months
+                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500 shadow-opacity-25 active'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                        }`}
+                      >
+                        {months}m
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
 
@@ -538,7 +601,7 @@ export default function LandingPage() {
             </div>
           ) : (
             /* OTP Form */
-            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-700 max-w-md mx-auto">
+            <div id="offer-form" className="bg-gray-900 rounded-2xl p-8 border border-gray-700 max-w-md mx-auto">
               {step === 'phone' && (
                 <>
                   <h3 className="text-2xl font-bold text-white mb-6 text-center">
