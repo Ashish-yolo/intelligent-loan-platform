@@ -87,6 +87,42 @@ class LoanApprovalLetterService:
             logger.error(f"Error collecting application data: {str(e)}")
             raise
     
+    def _format_full_address(self, verification_data: Dict[str, Any], aadhaar_data: Dict[str, Any]) -> str:
+        """Format complete address from verification and Aadhaar data"""
+        
+        # Try to get address from verification data first
+        addr = verification_data.get('address', {})
+        
+        # Build address components
+        address_parts = []
+        
+        # Address lines
+        if addr.get('line1') and addr['line1'] != 'NOT_EXTRACTED':
+            address_parts.append(addr['line1'])
+        elif aadhaar_data.get('address') and aadhaar_data['address'] != 'NOT_EXTRACTED':
+            address_parts.append(aadhaar_data['address'])
+        
+        if addr.get('line2') and addr['line2'] != 'NOT_EXTRACTED':
+            address_parts.append(addr['line2'])
+        
+        # City, State, Pincode
+        location_parts = []
+        if addr.get('city') and addr['city'] != 'NOT_EXTRACTED':
+            location_parts.append(addr['city'])
+        if addr.get('state') and addr['state'] != 'NOT_EXTRACTED':
+            location_parts.append(addr['state'])
+        if addr.get('pincode') and addr['pincode'] != 'NOT_EXTRACTED':
+            location_parts.append(f"- {addr['pincode']}")
+        
+        if location_parts:
+            address_parts.append(", ".join(location_parts))
+        
+        # Return formatted address or fallback
+        if address_parts:
+            return ", ".join(address_parts)
+        else:
+            return "NOT_EXTRACTED"
+    
     def _extract_customer_info(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract customer information from application data"""
         
@@ -105,8 +141,7 @@ class LoanApprovalLetterService:
             "date_of_birth": pan_data.get('dob', 'NOT_EXTRACTED'),
             "father_name": pan_data.get('father_name', 'NOT_EXTRACTED'),
             "address": {
-                "line1": verification_data.get('address', {}).get('line1', aadhaar_data.get('address', 'NOT_EXTRACTED')),
-                "line2": verification_data.get('address', {}).get('line2', ''),
+                "full_address": self._format_full_address(verification_data, aadhaar_data),
                 "city": verification_data.get('address', {}).get('city', 'NOT_EXTRACTED'),
                 "state": verification_data.get('address', {}).get('state', 'NOT_EXTRACTED'),
                 "pincode": verification_data.get('address', {}).get('pincode', 'NOT_EXTRACTED')
@@ -404,11 +439,20 @@ class LoanApprovalLetterService:
         ]
         
         # Add address if available
-        if customer['address']['line1'] != 'NOT_EXTRACTED':
-            content.extend([
-                Paragraph(f"{customer['address']['line1']}", styles['Normal']),
-                Paragraph(f"{customer['address']['city']}, {customer['address']['state']} - {customer['address']['pincode']}", styles['Normal']),
-            ])
+        if customer['address']['full_address'] != 'NOT_EXTRACTED':
+            content.append(Paragraph(f"{customer['address']['full_address']}", styles['Normal']))
+        else:
+            # Fallback to separate city, state, pincode
+            location_parts = []
+            if customer['address']['city'] != 'NOT_EXTRACTED':
+                location_parts.append(customer['address']['city'])
+            if customer['address']['state'] != 'NOT_EXTRACTED':
+                location_parts.append(customer['address']['state'])
+            if customer['address']['pincode'] != 'NOT_EXTRACTED':
+                location_parts.append(customer['address']['pincode'])
+            
+            if location_parts:
+                content.append(Paragraph(f"{', '.join(location_parts)}", styles['Normal']))
         
         return content
     

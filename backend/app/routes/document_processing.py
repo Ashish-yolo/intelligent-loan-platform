@@ -951,12 +951,40 @@ async def extract_bank_statement(
         bank_extraction_prompt = """
         You are analyzing a BANK STATEMENT document only. Do NOT extract or reference any other document types like PAN cards, Aadhaar cards, or salary slips. Focus ONLY on transaction and income information from this bank statement document.
         
+        ENHANCED SALARY DETECTION INSTRUCTIONS:
+        
+        1. SALARY TRANSACTION PATTERNS TO LOOK FOR:
+           - Direct salary keywords: SALARY, SAL, PAYROLL, WAGES, COMPENSATION, REMUNERATION
+           - Company transfers: [COMPANY NAME] + CREDIT, NEFT, IMPS, RTGS
+           - Employment indicators: PRIVATE, LIMITED, LTD, PVT LTD, CORP, CORPORATION, TECHNOLOGIES
+           - Regular monthly credits from same source
+           - NET BANKING transfers from companies (e.g., "CHEQ DIGITAL PRIVATE")
+           
+        2. COMPANY NAME RECOGNITION:
+           - Look for major employers: TCS, INFOSYS, WIPRO, COGNIZANT, HCL, TECH MAHINDRA
+           - Banking companies: HDFC, ICICI, SBI, AXIS, KOTAK, YES BANK
+           - Consulting firms: DELOITTE, PWC, KPMG, EY, ACCENTURE
+           - Any transaction with: PVT LTD, PRIVATE LIMITED, CORP, TECHNOLOGIES
+           - Government entities: GOVT, PUBLIC SECTOR, PSU
+           
+        3. TRANSACTION ANALYSIS:
+           - Look for regular monthly credits (same amount, same source)
+           - Identify large credits from corporate entities
+           - NET BANKING deposits from companies
+           - NEFT/IMPS/RTGS transfers with company references
+           - UPI credits from business accounts
+           
+        4. AMOUNT VALIDATION:
+           - Salary range: ₹15,000 to ₹5,00,000 per month
+           - Look for consistent monthly patterns
+           - Calculate average from multiple salary credits
+           
         Analyze this bank statement and extract salary/income information:
-        - Look for regular salary credits
-        - Identify monthly income pattern
-        - Calculate average monthly income from last 3 months
-        - Identify the account holder name
-        - Find the bank name
+        - Scan ALL credit transactions for salary indicators
+        - Check transaction descriptions for company names
+        - Look for regular monthly income patterns
+        - Identify NET BANKING deposits from employers
+        - Calculate average monthly salary from identified credits
         
         Return ONLY a valid JSON object in this exact format:
         {
@@ -964,13 +992,18 @@ async def extract_bank_statement(
             "bank_name": "bank name",
             "statement_period": "MM/YYYY to MM/YYYY",
             "salary_credits": [
-                {"date": "DD/MM/YYYY", "amount": 75000, "description": "SAL CREDIT"},
-                {"date": "DD/MM/YYYY", "amount": 75000, "description": "SAL CREDIT"}
+                {"date": "DD/MM/YYYY", "amount": 75000, "description": "SAL CREDIT or company name"},
+                {"date": "DD/MM/YYYY", "amount": 383269, "description": "CHEQ DIGITAL PRIVATE"},
+                {"date": "DD/MM/YYYY", "amount": 50000, "description": "TCS LIMITED NEFT"}
             ],
-            "average_monthly_income": 75000,
+            "total_salary_credits": 508269,
+            "average_monthly_income": 169423,
+            "identified_employer": "Company name if found",
+            "salary_frequency": "Monthly/Bi-weekly/etc",
             "confidence": 0.90,
             "document_type": "Bank Statement",
-            "monthly_income": 75000
+            "monthly_income": 169423,
+            "analysis_notes": "Found 3 salary credits including NET BANKING from CHEQ DIGITAL PRIVATE"
         }
         """
         

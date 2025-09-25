@@ -7,6 +7,7 @@ API endpoints for generating and downloading loan approval letters.
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
+from io import StringIO
 from typing import Dict, Any, List
 import json
 import logging
