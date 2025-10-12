@@ -152,23 +152,13 @@ async def verify_otp(request: OTPVerificationRequest):
         # Clean up OTP
         del otp_storage[request.phone]
         
-        # Get or create user
-        user_result = await supabase_service.get_user_by_phone(request.phone)
-        
-        if not user_result["success"]:
-            # Create new user
-            create_result = await supabase_service.create_user(
-                phone=request.phone,
-                name=request.name
-            )
-            if not create_result["success"]:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to create user"
-                )
-            user = create_result["user"]
-        else:
-            user = user_result["user"]
+        # Create demo user (bypass database for now)
+        user = {
+            "id": f"user_{request.phone}",
+            "phone": request.phone,
+            "name": request.name or "Demo User",
+            "created_at": datetime.utcnow().isoformat()
+        }
         
         # Create access token
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
