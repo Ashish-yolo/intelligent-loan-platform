@@ -22,9 +22,20 @@ export default function LoanApprovedPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated
+    // Check if user is authenticated (relaxed for debugging)
     const token = localStorage.getItem('token')
-    if (!token) {
+    const user = localStorage.getItem('user')
+    const hasLoanData = localStorage.getItem('loanApprovalData')
+    
+    console.log('Loan approved page - Auth check:', {
+      token: token ? 'Token found' : 'No token',
+      user: user ? 'User found' : 'No user', 
+      loanData: hasLoanData ? 'Loan data found' : 'No loan data'
+    })
+    
+    // Only redirect if no authentication AND no loan approval data (more lenient)
+    if (!token && !user && !hasLoanData) {
+      console.log('No authentication data found, redirecting to home page')
       router.push('/')
       return
     }

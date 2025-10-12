@@ -274,6 +274,9 @@ export default function ProcessingPage() {
               setTimeout(() => {
                 if (isProcessing) {
                   try {
+                    console.log('Processing complete, navigating to loan-approved page')
+                    console.log('Token before navigation:', localStorage.getItem('token') ? 'Present' : 'Missing')
+                    console.log('User before navigation:', localStorage.getItem('user') ? 'Present' : 'Missing')
                     router.push('/loan-approved')
                   } catch (error) {
                     console.error('Navigation error:', error)
