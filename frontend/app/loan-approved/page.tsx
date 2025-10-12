@@ -70,20 +70,25 @@ export default function LoanApprovedPage() {
   const handleProceed = () => {
     setLoading(true)
     
-    // Store the final loan selections
-    localStorage.setItem('finalLoanSelection', JSON.stringify({
+    // Store the final loan terms for approval page
+    localStorage.setItem('finalLoanTerms', JSON.stringify({
+      amount: selectedAmount,
+      tenure: tenure,
+      selectedOffer: {
+        bankName: 'UMoney Partner Bank',
+        emi: calculateEMI(selectedAmount, tenure),
+        interestRate: 12.5,
+        processingFee: 0,
+        totalAmount: calculateEMI(selectedAmount, tenure) * tenure
+      },
       approvedAmount,
-      selectedAmount,
-      tenure,
-      interestRate: 12.5,
-      estimatedEMI: calculateEMI(selectedAmount, tenure),
       timestamp: Date.now()
     }))
 
     toast.success('Loan details confirmed!')
     
     setTimeout(() => {
-      router.push('/loan-agreement') // Next step would be loan agreement
+      router.push('/approval') // Go to congratulations page with social sharing
     }, 1500)
   }
 
