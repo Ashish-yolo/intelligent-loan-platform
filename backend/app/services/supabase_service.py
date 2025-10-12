@@ -14,19 +14,26 @@ class SupabaseService:
     async def initialize(self):
         """Initialize Supabase client"""
         try:
+            if not hasattr(settings, 'SUPABASE_URL') or not settings.SUPABASE_URL:
+                logger.warning("Supabase URL not configured, skipping initialization")
+                return
+                
             self.client = create_client(
                 supabase_url=settings.SUPABASE_URL,
                 supabase_key=settings.SUPABASE_KEY
             )
             logger.info("Supabase client initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize Supabase client: {e}")
-            raise
+            logger.warning(f"Failed to initialize Supabase client (demo mode): {e}")
+            # Don't raise - allow the service to continue without database
 
     # User management
     async def create_user(self, phone: str, name: str = None) -> Dict[str, Any]:
         """Create a new user"""
         try:
+            if not self.client:
+                return {"success": False, "error": "Database not available"}
+                
             user_data = {
                 "id": str(uuid.uuid4()),
                 "phone": phone,
@@ -44,6 +51,9 @@ class SupabaseService:
     async def get_user_by_phone(self, phone: str) -> Dict[str, Any]:
         """Get user by phone number"""
         try:
+            if not self.client:
+                return {"success": False, "error": "Database not available"}
+                
             result = self.client.table("users").select("*").eq("phone", phone).execute()
             if result.data:
                 return {"success": True, "user": result.data[0]}
